@@ -48,15 +48,15 @@
   figure.hero::after {
     content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 72%;
     background: linear-gradient(to top,
-      rgba(7,8,11,.95) 0%, rgba(7,8,11,.78) 30%, rgba(7,8,11,.34) 62%, transparent 100%);
-    pointer-events: none;
+      rgba(7,8,11,.95) 0%, rgba(7,8,11,.80) 26%, rgba(7,8,11,.30) 58%, transparent 100%);
+    pointer-events: none; z-index: 1;
   }
-  .herotitle { position: absolute; left: 0; right: 0; bottom: 0; }
+  .herotitle { position: absolute; left: 0; right: 0; bottom: 0; z-index: 2; }
   .herotitle .inner {
     max-width: 800px; margin: 0 auto;
-    padding: 0 clamp(16px,5vw,32px) clamp(16px,3.2vw,30px);
+    padding: 0 clamp(16px,5vw,32px) clamp(10px,1.6vw,16px);
   }
-  .herotitle h1 { margin: 0 0 4px; }
+  .herotitle h1 { margin: 0 0 2px; }
   .herotitle .lede { margin: 0; color: #C2CBD9; }
   /* at 2.36:1 a phone gets a 159px strip, too shallow to hold a title, so crop
      to something squarer rather than shrinking the type */
@@ -182,58 +182,11 @@
   }
 
 
-  /* A short arc of light runs the perimeter once and goes out. It sits OUTSIDE
-     the picture with room to breathe, rather than hugging the edge. Masked to a
-     2px ring so only the trace itself lights. */
-  @property --holoang { syntax: "<angle>"; initial-value: 0deg; inherits: false; }
-  .holoframe .edge {
-    position: absolute; inset: -9px; border-radius: 14px; padding: 2px;
-    z-index: 3; pointer-events: none; opacity: 0;
-    background: conic-gradient(from var(--holoang),
-      rgba(225,248,255,1) 0%,
-      rgba(120,205,255,.75) 4%,
-      rgba(90,180,255,.25) 9%,
-      transparent 14% 100%);
-    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-    -webkit-mask-composite: xor;
-            mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-            mask-composite: exclude;
+  /* the particle trace draws itself on a canvas; see the script at the foot */
+  .holoframe canvas.trace {
+    position: absolute; inset: -22px; width: calc(100% + 44px);
+    height: calc(100% + 44px); z-index: 3; pointer-events: none;
   }
-  .holoframe:hover .edge, .holoframe:focus-within .edge {
-    animation: holorun 1.9s cubic-bezier(.42,0,.35,1) forwards;
-  }
-  @keyframes holorun {
-    0%   { opacity: 0;   --holoang: -90deg; }
-    8%   { opacity: 1; }
-    82%  { opacity: 1; }
-    100% { opacity: 0;   --holoang: 270deg; }
-  }
-
-  /* nodes on the boundary, lighting as the arc reaches each one */
-  .holoframe .dot {
-    position: absolute; width: 5px; height: 5px; border-radius: 50%;
-    background: rgba(200,238,255,1);
-    box-shadow: 0 0 10px rgba(110,195,255,1);
-    opacity: 0; z-index: 4; pointer-events: none;
-    margin: -2.5px 0 0 -2.5px;
-  }
-  .holoframe:hover .dot, .holoframe:focus-within .dot {
-    animation: holonode .75s ease-out forwards;
-  }
-  @keyframes holonode {
-    0%   { opacity: 0; transform: scale(.4); }
-    25%  { opacity: 1; transform: scale(1.5); }
-    100% { opacity: 0; transform: scale(.8); }
-  }
-  /* eight points clockwise from the top, delays tracking the arc around */
-  .holoframe .dot:nth-of-type(1) { left: 50%;  top: -9px;    animation-delay: .00s; }
-  .holoframe .dot:nth-of-type(2) { right: -9px; top: 0;      animation-delay: .24s; }
-  .holoframe .dot:nth-of-type(3) { right: -9px; top: 50%;    animation-delay: .48s; }
-  .holoframe .dot:nth-of-type(4) { right: -9px; bottom: 0;   animation-delay: .71s; }
-  .holoframe .dot:nth-of-type(5) { left: 50%;  bottom: -9px; animation-delay: .95s; }
-  .holoframe .dot:nth-of-type(6) { left: -9px;  bottom: 0;   animation-delay: 1.19s; }
-  .holoframe .dot:nth-of-type(7) { left: -9px;  top: 50%;    animation-delay: 1.43s; }
-  .holoframe .dot:nth-of-type(8) { left: -9px;  top: 0;      animation-delay: 1.66s; }
 
   /* the play affordance. The native control is small and lands on top of the
      colour key burned into some of these clips, so the frame carries its own. */
@@ -295,9 +248,8 @@
   @media (prefers-reduced-motion: reduce) {
     .holoframe::before, .holoframe::after,
     .holoframe img, .holoframe video, .holo, h2::before { transition: none; }
-    .holoframe:hover .edge { animation: none; opacity: 0; }
-    .holoframe:hover .dot { animation: none; opacity: 0; }
     .playbadge { transition: none; }
+    .holoframe canvas.trace { display: none; }
   }
 
 </style>
@@ -321,12 +273,14 @@
     Zheng, Park, Hammerschmith, Lu, Yu, Sorek, Silverman, Jordan, Sterling, Silversmith,
     Collman, Seung, Tank &middot; bioRxiv, 15 July 2025 &middot;
     <a href="https://doi.org/10.1101/2025.07.09.663979">doi:10.1101/2025.07.09.663979</a>
+    <br>The dataset is shared through <a href="https://pyr.ai">Pyr</a>, an online
+    platform for hippocampal connectomics.
   </div>
 
 
 
   <div class="holoframe"><figure class="volfig">
-    <i class="edge"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><img src="images/21_volume.png" alt="Wireframe diagram of the reconstructed tissue block with one pyramidal cell inside it for scale">
+    <canvas class="trace"></canvas><img src="images/21_volume.png" alt="Wireframe diagram of the reconstructed tissue block with one pyramidal cell inside it for scale">
     <figcaption>The block that was cut, imaged and reconstructed: <b>1 x 1 x 0.1 mm</b>
     of mouse CA3. One pyramidal cell is drawn inside it at true relative scale. Nearly
     two thousand of them are in there, threaded through by more than fifty five
@@ -336,7 +290,7 @@
   <h2>Watch it assemble</h2>
   <div class="vidwrap">
     <div class="holoframe"><figure>
-      <i class="edge"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><video controls playsinline muted loop preload="metadata" poster="images/01_current.jpg">
+      <canvas class="trace"></canvas><video controls playsinline muted loop preload="metadata" poster="images/01_current.jpg">
         <source src="video/build_sequence.mp4" type="video/mp4">
       </video>
       <figcaption>Populations arrive in circuit order: mossy fibers first as the incoming
@@ -364,7 +318,7 @@
   rather than two ends of one continuum.</p>
 
   <div class="holoframe"><figure>
-    <i class="edge"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><img src="images/11_thorn_somas.jpg" alt="Pyramidal cell bodies covered in thorny excrescences">
+    <canvas class="trace"></canvas><img src="images/11_thorn_somas.jpg" alt="Pyramidal cell bodies covered in thorny excrescences">
     <figcaption>Thorny excrescences on pyramidal cell bodies. Each balloon like
     cluster is a single elaborate spine, and a mossy fiber terminal wraps around it.</figcaption>
   </figure></div>
@@ -386,7 +340,7 @@
 
   <h2>182 thorny pyramidal cells</h2>
   <div class="holoframe"><figure class="badge">
-    <i class="edge"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><img src="images/03_thorny.jpg" alt="Thorny pyramidal cells rendered alone">
+    <canvas class="trace"></canvas><img src="images/03_thorny.jpg" alt="Thorny pyramidal cells rendered alone">
   </figure></div>
 
   <h2>Inside a single cell</h2>
@@ -429,7 +383,7 @@
 
   <div class="vidwrap" style="margin-top:20px">
     <div class="holoframe"><figure>
-      <i class="edge"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><video controls playsinline muted loop preload="metadata"
+      <canvas class="trace"></canvas><video controls playsinline muted loop preload="metadata"
              poster="images/14_cell_zoom.jpg"
              data-wide="video/cell_zoomout_wide.mp4"
              data-wide-poster="images/17_cell_wide_poster.jpg">
@@ -449,7 +403,7 @@
   real branching and splits wherever the cable splits.</p>
   <div class="vidfull">
     <div class="holoframe"><figure>
-      <i class="edge"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><video controls playsinline muted loop preload="metadata" poster="images/20_ap_six_poster.jpg">
+      <canvas class="trace"></canvas><video controls playsinline muted loop preload="metadata" poster="images/20_ap_six_poster.jpg">
         <source src="video/ap_six.mp4" type="video/mp4">
       </video>
       <figcaption>Eighteen seconds. All <b>165</b> mossy fiber synapses onto this one
@@ -484,7 +438,7 @@
 
   <div class="vidwrap" style="margin-top:20px">
     <div class="holoframe"><figure>
-      <i class="edge"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><video controls playsinline muted loop preload="metadata" poster="images/10_story.jpg">
+      <canvas class="trace"></canvas><video controls playsinline muted loop preload="metadata" poster="images/10_story.jpg">
         <source src="video/synapse_story.mp4" type="video/mp4">
       </video>
       <figcaption>The presynaptic cells fade up, their synapses bloom across the volume, and then the postsynaptic partners arrive around them.</figcaption>
@@ -496,7 +450,7 @@
   fibers thread horizontally through them. Every gold strand is an axon arriving from
   the dentate gyrus.</p>
   <div class="holoframe"><figure>
-    <i class="edge"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><img src="images/g3_sea-of-mossy-fibers.jpg" alt="Pyramidal cell bodies in blue with mossy fibers threading through in gold">
+    <canvas class="trace"></canvas><img src="images/g3_sea-of-mossy-fibers.jpg" alt="Pyramidal cell bodies in blue with mossy fibers threading through in gold">
   </figure></div>
 
   <h2>The classification, reproduced</h2>
@@ -520,7 +474,7 @@
 
     <div class="holoframe"><figure class="wide">
       <a href="images/g2_ca3-population-bouton-inset_full.jpg">
-        <i class="edge"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><img src="images/g2_ca3-population-bouton-inset.jpg"
+        <canvas class="trace"></canvas><img src="images/g2_ca3-population-bouton-inset.jpg"
              alt="The CA3 population as a broad V shaped band with a circular inset on one mossy fiber bouton"></a>
       <figcaption>The reconstructed population seen face on, gold mossy fibers threading
       through crowds of cells. The inset follows one mossy fiber axon down to its boutons,
@@ -529,7 +483,7 @@
 
     <div class="holoframe"><figure class="wide">
       <a href="images/g1_pyramidal-soma-lineup_full.jpg">
-        <i class="edge"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><img src="images/g1_pyramidal-soma-lineup.jpg"
+        <canvas class="trace"></canvas><img src="images/g1_pyramidal-soma-lineup.jpg"
              alt="A row of CA3 pyramidal cell bodies, each in a different colour"></a>
       <figcaption>Pyramidal cell bodies lined up as they sit in the layer, one colour each.
       The apical dendrites climb out of the top carrying their thorny excrescences, and the
@@ -537,7 +491,7 @@
     </figure></div>
 
     <div class="holoframe"><figure class="tall">
-      <i class="edge"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><video controls playsinline muted loop preload="metadata" poster="images/19_partners.jpg">
+      <canvas class="trace"></canvas><video controls playsinline muted loop preload="metadata" poster="images/19_partners.jpg">
         <source src="video/cell_partners.mp4" type="video/mp4">
       </video>
       <figcaption>These six mossy fibers are not private to this cell. Each carries on
@@ -548,14 +502,14 @@
 
     <div class="holoframe"><figure>
       <a href="images/16_cell_wide_full.jpg">
-        <i class="edge"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><img src="images/16_cell_wide.jpg"
+        <canvas class="trace"></canvas><img src="images/16_cell_wide.jpg"
              alt="A single thorny pyramidal cell with six mossy fibers, in widescreen"></a>
       <figcaption>One thorny pyramidal cell and the six mossy fibers that reach it.</figcaption>
     </figure></div>
 
     <div class="holoframe"><figure>
       <a href="images/07_synapses.jpg">
-        <i class="edge"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><img src="images/07_synapses.jpg"
+        <canvas class="trace"></canvas><img src="images/07_synapses.jpg"
              alt="Presynaptic CA3 cells in pink with their synapses marked in gold"></a>
       <figcaption>Sixteen presynaptic cells in pink, with all 25,723 of their synapses
       in gold. The beads string along each axon because that is physically where the
@@ -564,14 +518,14 @@
 
     <div class="holoframe"><figure>
       <a href="images/13_thorn_macro.jpg">
-        <i class="edge"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><img src="images/13_thorn_macro.jpg"
+        <canvas class="trace"></canvas><img src="images/13_thorn_macro.jpg"
              alt="Close view of a thorny excrescence"></a>
       <figcaption>A thorny excrescence up close. This tangle is a single spine.</figcaption>
     </figure></div>
 
     <div class="holoframe"><figure>
       <a href="images/09_hero_bouton.jpg">
-        <i class="edge"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><img src="images/09_hero_bouton.jpg"
+        <canvas class="trace"></canvas><img src="images/09_hero_bouton.jpg"
              alt="A gold mossy fiber terminal wrapped around a thorny excrescence"></a>
       <figcaption>A mossy fiber terminal in gold, wrapped around a thorny excrescence.
       The blue thorns push out through the terminal that engulfs them.</figcaption>
@@ -580,15 +534,146 @@
   </div>
 
   <h2>Colour key</h2>
-  <div class="holoframe"><figure><i class="edge"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><img src="images/04_key.jpg" alt="Colour key for the six populations"></figure></div>
+  <div class="holoframe"><figure><canvas class="trace"></canvas><img src="images/04_key.jpg" alt="Colour key for the six populations"></figure></div>
 
   <footer>
     Meshes pulled from the segmentation through
     <a href="https://caveclient.readthedocs.io/">CAVE</a> and rendered in Blender.
+    <a href="https://pyr.ai">Explore the dataset on Pyr</a> &middot;
     <a href="https://github.com/amyleesterling/ca3">Source on GitHub</a>.
   </footer>
 
 </div>
+<script>
+(function () {
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  var PAD = 22, N = 150, DUR = 2600;
+
+  // a point at fraction t around a rounded rectangle, walking the four sides
+  function ring(t, w, h, r) {
+    var sw = w - 2 * r, sh = h - 2 * r;
+    var arc = Math.PI * r / 2, per = 2 * sw + 2 * sh + 4 * arc;
+    var d = ((t % 1) + 1) % 1 * per;
+    if (d < sw) return [r + d, 0];
+    d -= sw;
+    if (d < arc) { var a = d / arc * Math.PI / 2; return [w - r + r * Math.sin(a), r - r * Math.cos(a)]; }
+    d -= arc;
+    if (d < sh) return [w, r + d];
+    d -= sh;
+    if (d < arc) { var b = d / arc * Math.PI / 2; return [w - r + r * Math.cos(b), h - r + r * Math.sin(b)]; }
+    d -= arc;
+    if (d < sw) return [w - r - d, h];
+    d -= sw;
+    if (d < arc) { var c = d / arc * Math.PI / 2; return [r - r * Math.sin(c), h - r + r * Math.cos(c)]; }
+    d -= arc;
+    if (d < sh) return [0, h - r - d];
+    d -= sh;
+    var e = d / arc * Math.PI / 2;
+    return [r - r * Math.cos(e), r - r * Math.sin(e)];
+  }
+
+  document.querySelectorAll(".holoframe").forEach(function (frame) {
+    var cv = frame.querySelector("canvas.trace");
+    if (!cv) return;
+    var ctx = cv.getContext("2d"), parts = [], raf = 0, t0 = 0, w = 0, h = 0, dpr = 1;
+
+    function size() {
+      var r = frame.getBoundingClientRect();
+      if (!r.width) return false;
+      dpr = Math.min(devicePixelRatio || 1, 2);
+      w = r.width + PAD * 2; h = r.height + PAD * 2;
+      cv.width = w * dpr; cv.height = h * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      return true;
+    }
+
+    function seed() {
+      parts = [];
+      for (var i = 0; i < N; i++) {
+        // each mote owns a spot on the boundary and starts scattered off it
+        var t = i / N + (Math.random() - 0.5) * 0.01;
+        var p = ring(t, w - 2, h - 2, 15);
+        var ang = Math.random() * Math.PI * 2, rad = 14 + Math.random() * 46;
+        parts.push({
+          t: t, tx: p[0] + 1, ty: p[1] + 1,
+          x: p[0] + 1 + Math.cos(ang) * rad, y: p[1] + 1 + Math.sin(ang) * rad,
+          vx: 0, vy: 0, r: 0.7 + Math.random() * 1.3, ph: Math.random() * 6.283
+        });
+      }
+    }
+
+    function draw(now) {
+      var k = (now - t0) / DUR;
+      if (k >= 1) { stop(); return; }
+
+      // fade what is already there rather than clearing, so motion leaves a trail
+      ctx.globalCompositeOperation = "destination-out";
+      ctx.fillStyle = "rgba(0,0,0,0.14)";
+      ctx.fillRect(0, 0, w, h);
+      ctx.globalCompositeOperation = "lighter";
+
+      // the sweep head runs the boundary through the middle of the shot
+      var head = (k - 0.18) / 0.62;
+      for (var i = 0; i < parts.length; i++) {
+        var p = parts[i], gather, lit = 0;
+
+        if (k < 0.30) {
+          gather = k / 0.30;                       // drawn in to the boundary
+        } else if (k < 0.86) {
+          gather = 1;
+          var d = p.t - head;                      // distance behind the head
+          d = d - Math.round(d);                   // wrap to [-0.5, 0.5]
+          if (d < 0.02 && d > -0.17) lit = 1 - Math.abs(d + 0.075) / 0.095;
+        } else {
+          gather = 1 - (k - 0.86) / 0.14;          // let go, and tumble
+        }
+        gather = Math.max(0, Math.min(1, gather));
+        lit = Math.max(0, lit);
+
+        var ease = gather * gather * (3 - 2 * gather);
+        var ax = (p.tx - p.x) * 0.06 * ease, ay = (p.ty - p.y) * 0.06 * ease;
+        if (k >= 0.86) {
+          // turbulence on the way out, a cheap curl from two offset sines
+          var s = (1 - gather) * 0.9;
+          ax += Math.sin(p.y * 0.05 + p.ph) * s;
+          ay += Math.cos(p.x * 0.05 + p.ph) * s;
+        }
+        p.vx = (p.vx + ax) * 0.88; p.vy = (p.vy + ay) * 0.88;
+        p.x += p.vx; p.y += p.vy;
+
+        var alpha = k < 0.30 ? k / 0.30 * 0.5 : (k < 0.86 ? 0.5 : 0.5 * (1 - (k - 0.86) / 0.14));
+        alpha = Math.min(1, alpha + lit * 0.95);
+        var rr = p.r * (1 + lit * 1.7);
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, rr, 0, 6.283);
+        ctx.fillStyle = lit > 0.15
+          ? "rgba(215,246,255," + alpha.toFixed(3) + ")"
+          : "rgba(120,196,255," + (alpha * 0.85).toFixed(3) + ")";
+        ctx.fill();
+      }
+      raf = requestAnimationFrame(draw);
+    }
+
+    function stop() {
+      cancelAnimationFrame(raf); raf = 0;
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.clearRect(0, 0, cv.width, cv.height);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+
+    function start() {
+      if (raf) return;
+      if (!size()) return;
+      seed();
+      t0 = performance.now();
+      raf = requestAnimationFrame(draw);
+    }
+
+    frame.addEventListener("mouseenter", start);
+    frame.addEventListener("focusin", start);
+  });
+})();
+</script>
 <script>
 (function () {
   document.querySelectorAll(".holoframe").forEach(function (f) {
