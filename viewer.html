@@ -1,0 +1,415 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Action potential, interactive</title>
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<style>
+  :root {
+    --ink:#EFF2F7; --dim:#9AA2B1; --faint:#666E7C;
+    --ground:#07080B; --panel:#0F1218; --line:#1D222B; --accent:#3E96F0;
+  }
+  * { box-sizing:border-box; }
+  body {
+    margin:0; background:var(--ground); color:var(--ink);
+    font:400 17px/1.7 ui-sans-serif,-apple-system,"Segoe UI",Roboto,sans-serif;
+    -webkit-text-size-adjust:100%;
+  }
+  .wrap { max-width:960px; margin:0 auto; padding:clamp(20px,5vw,44px) clamp(16px,5vw,32px) 70px; }
+  h1 { margin:0 0 5px; font-size:clamp(23px,6vw,31px); font-weight:500; letter-spacing:-.015em; }
+  .lede { margin:0 0 24px; color:var(--dim); font-size:16px; }
+  p { margin:0 0 14px; }
+  a { color:var(--accent); text-decoration:none; }
+
+  /* the stage */
+  #stage {
+    position:relative; width:100%; aspect-ratio:16/10; min-height:340px;
+    background:radial-gradient(70% 90% at 50% 42%, #0B1522, #06090F 72%);
+    border:1px solid rgba(112,190,255,.16); border-radius:4px; overflow:hidden;
+    touch-action:none;
+  }
+  #stage canvas { display:block; width:100%; height:100%; }
+  #fallback {
+    position:absolute; inset:0; display:none; place-items:center; text-align:center;
+    padding:28px; color:var(--dim); font-size:15px;
+  }
+
+  /* hairline corner ticks, so the stage reads as an instrument */
+  .tick { position:absolute; width:13px; height:13px; pointer-events:none;
+          border:0 solid rgba(150,208,252,.5); }
+  .tick.tl{top:7px;left:7px;border-top-width:1px;border-left-width:1px}
+  .tick.tr{top:7px;right:7px;border-top-width:1px;border-right-width:1px}
+  .tick.bl{bottom:7px;left:7px;border-bottom-width:1px;border-left-width:1px}
+  .tick.br{bottom:7px;right:7px;border-bottom-width:1px;border-right-width:1px}
+
+  #readout {
+    position:absolute; left:16px; top:16px; z-index:3; pointer-events:none;
+    font-size:10px; letter-spacing:.17em; text-transform:uppercase;
+    color:rgba(190,222,252,.9); text-shadow:0 1px 7px rgba(0,0,0,.85);
+    font-variant-numeric:tabular-nums; line-height:1.9;
+  }
+  #readout b { color:#EFF7FF; font-weight:500; }
+  /* uppercase renders the micro sign as a capital Mu, which reads as MM */
+  #readout .u { text-transform:none; margin-left:.35em; }
+  #readout .st { color:rgba(232,169,58,.95); }
+
+  /* controls */
+  .ctl { display:flex; align-items:center; gap:14px; margin:14px 0 0; flex-wrap:wrap; }
+  button {
+    font:inherit; font-size:12px; letter-spacing:.12em; text-transform:uppercase;
+    color:var(--ink); background:rgba(16,28,46,.8); cursor:pointer;
+    border:1px solid rgba(112,190,255,.28); border-radius:3px; padding:9px 16px;
+    transition:border-color .25s ease, background .25s ease, transform .2s ease;
+  }
+  button:hover { border-color:rgba(150,212,255,.7); background:rgba(22,40,66,.9); }
+  button:active { transform:translateY(1px); }
+  button:focus-visible { outline:2px solid var(--accent); outline-offset:3px; }
+  input[type=range] {
+    flex:1 1 220px; min-width:180px; accent-color:var(--accent);
+    background:transparent; height:26px;
+  }
+  input[type=range]:focus-visible { outline:2px solid var(--accent); outline-offset:3px; }
+  .note {
+    margin:22px 0 0; padding:13px 16px; background:var(--panel);
+    border-left:3px solid var(--accent); border-radius:0 8px 8px 0;
+    color:var(--dim); font-size:15px;
+  }
+  .note b { color:var(--ink); font-weight:500; }
+  footer { margin-top:44px; padding-top:20px; border-top:1px solid var(--line);
+           color:var(--faint); font-size:14px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>An action potential, interactive</h1>
+  <p class="lede">One mossy fiber and the CA3 pyramidal cell it contacts. Drag to
+  orbit, scroll to zoom, scrub to move the signal.</p>
+
+  <div id="stage">
+    <i class="tick tl"></i><i class="tick tr"></i><i class="tick bl"></i><i class="tick br"></i>
+    <div id="readout">
+      <div><b id="rDist">0</b><span class="u">&micro;m</span> of cable</div>
+      <div class="st" id="rWhat">at rest</div>
+    </div>
+    <div id="fallback">
+      This viewer needs WebGL, which your browser has not made available.
+      The rendered animations on the <a href="./">main page</a> show the same event.
+    </div>
+  </div>
+
+  <div class="ctl">
+    <button id="play" aria-label="Play or pause the action potential">Play</button>
+    <input id="scrub" type="range" min="0" max="1000" value="0" step="1"
+           aria-label="Scrub through the action potential">
+    <button id="reset" aria-label="Reset the camera view">Reset view</button>
+  </div>
+
+  <div class="note">The pulse is not a sweep across the screen. Every vertex of
+  these meshes carries its own distance measured along the cell's own skeleton, so
+  the wavefront follows the real branching and splits wherever the cable splits.
+  The signal travels the fiber to the boutons, then from the thorn through the cell
+  to the soma, <b>130.5&nbsp;&micro;m</b> of cable away, and out along the
+  descending arbor. The <b>31%</b> of dendrite it never enters stays dark, because
+  that is where it does not go.
+  <br><br>Simplified for the browser: 110,000 faces against 4.5 million in the
+  rendered version, so the thorny excrescences are smoothed away here.</div>
+
+  <footer>
+    Meshes from <a href="https://caveclient.readthedocs.io/">CAVE</a>, skeletons from
+    meshparty, rendered with three.js. <a href="./">Back to the renderings</a>.
+  </footer>
+</div>
+
+<script type="importmap">
+{ "imports": {
+  "three": "./web/vendor/three.module.min.js",
+  "three/addons/": "./web/vendor/"
+} }
+</script>
+<script type="module">
+import * as THREE from "three";
+import { GLTFLoader } from "./web/vendor/loaders/GLTFLoader.js";
+import { OrbitControls } from "./web/vendor/controls/OrbitControls.js";
+
+const stage = document.getElementById("stage");
+const fallback = document.getElementById("fallback");
+const rDist = document.getElementById("rDist");
+const rWhat = document.getElementById("rWhat");
+const btnPlay = document.getElementById("play");
+const btnReset = document.getElementById("reset");
+const scrub = document.getElementById("scrub");
+
+// ---- the sequence -------------------------------------------------------------
+// phase 0 to 0.45 the fibre, 0.45 to 0.52 the arrival flash, then the cell.
+const FIBRE_END = 0.45, CELL_START = 0.52;
+let meta = null, phase = 0, playing = false, raf = 0, visible = true;
+const DUR = 5200;   // ms for one loop
+let last = performance.now();
+
+let renderer, scene, camera, controls, flare;
+const mats = [];
+
+function fail(msg) {
+  fallback.style.display = "grid";
+  fallback.textContent = msg;
+  console.error(msg);
+}
+
+// A band of emission riding the baked distance field. vColor.r is distance along
+// the cable normalised 0 to 1; vColor.g is 1 only where the signal reaches, so
+// unreached geometry can never light no matter where the head is.
+function pulseMaterial(baseHex, glowHex, width, peak) {
+  const m = new THREE.ShaderMaterial({
+    uniforms: {
+      uHead:  { value: -0.2 },
+      uWidth: { value: width },
+      uPeak:  { value: peak },
+      uBase:  { value: new THREE.Color(baseHex) },
+      uGlow:  { value: new THREE.Color(glowHex) }
+    },
+    vertexShader: `
+      // aField is ours, copied off COLOR_0 at load time. Using three's own
+      // color attribute meant either a redefinition error or a vec3 / vec4
+      // type mismatch depending on itemSize, so we sidestep it entirely.
+      attribute vec2 aField;
+      varying vec2 vC;
+      varying vec3 vN;
+      void main() {
+        vC = aField;
+        vN = normalize(normalMatrix * normal);
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      }`,
+    fragmentShader: `
+      uniform float uHead, uWidth, uPeak;
+      uniform vec3 uBase, uGlow;
+      varying vec2 vC;
+      varying vec3 vN;
+      void main() {
+        // submerged tissue, so soft wrapped diffuse and no specular at all
+        vec3 nn = length(vN) > 1e-5 ? normalize(vN) : vec3(0.0, 0.0, 1.0);
+        float d = dot(nn, normalize(vec3(0.42, 0.55, 0.72)));
+        float lam = 0.46 + 0.54 * (d * 0.5 + 0.5);
+        lam = clamp(lam, 0.0, 2.0);
+        vec3 col = uBase * lam;
+        float reach = step(0.5, vC.g);
+        float band = clamp(1.0 - abs(vC.r - uHead) / uWidth, 0.0, 1.0);
+        band = band * band * reach * uPeak;
+        col += uGlow * band;
+        // three.js converts Color from hex into linear space but does NOT append
+        // the output encoding to a custom ShaderMaterial, so without this the
+        // whole scene renders about two stops too dark. Black on black.
+        col = pow(max(col, vec3(0.0)), vec3(1.0 / 2.2));
+        gl_FragColor = vec4(col, 1.0);
+      }`
+  });
+  mats.push(m);
+  return m;
+}
+
+function init() {
+  try {
+    renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  } catch (e) {
+    return fail("This viewer needs WebGL, which your browser has not made available.");
+  }
+  if (!renderer.getContext()) {
+    return fail("This viewer needs WebGL, which your browser has not made available.");
+  }
+  renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
+  stage.appendChild(renderer.domElement);
+
+  scene = new THREE.Scene();
+  camera = new THREE.PerspectiveCamera(38, 16 / 10, 0.5, 4000);
+  camera.position.set(210, 90, 210);
+
+  controls = new OrbitControls(camera, renderer.domElement);
+  controls.enableDamping = true;
+  controls.dampingFactor = 0.07;
+  controls.rotateSpeed = 0.75;
+  controls.minDistance = 25;
+  controls.maxDistance = 900;
+
+  // the contact flash, an additive sprite so it needs no texture decode
+  const g = new THREE.SphereGeometry(3.2, 20, 14);
+  flare = new THREE.Mesh(g, new THREE.MeshBasicMaterial({
+    color: 0xFFEFC4, transparent: true, opacity: 0, blending: THREE.AdditiveBlending
+  }));
+  scene.add(flare);
+
+  resize();
+  addEventListener("resize", resize);
+  load();
+}
+
+function resize() {
+  const r = stage.getBoundingClientRect();
+  if (!r.width) return;
+  renderer.setSize(r.width, r.height, false);
+  camera.aspect = r.width / r.height;
+  camera.updateProjectionMatrix();
+}
+
+let cellMat, fibreMat;
+
+function load() {
+  fetch("./web/scene.json").then(r => r.json()).then(j => {
+    meta = j;
+    const s = j.synapses.reduce((a, p) => [a[0] + p[0], a[1] + p[1], a[2] + p[2]], [0, 0, 0]);
+    const n = j.synapses.length;
+    flare.position.set(s[0] / n, s[1] / n, s[2] / n);
+    controls.target.copy(flare.position);
+    controls.update();
+  }).catch(() => fail("Could not load scene.json."));
+
+  const loader = new GLTFLoader();
+  cellMat = pulseMaterial(0x2E8BE0, 0xCFE8FF, 0.10, 2.6);
+  fibreMat = pulseMaterial(0xE8A93A, 0xFFF0C0, 0.055, 2.2);
+
+  let pending = 2;
+  const done = () => { if (--pending === 0) { setPhase(0); tick(); } };
+
+  const add = (url, mat, label) => loader.load(url, gltf => {
+    gltf.scene.traverse(o => {
+      if (!o.isMesh) return;
+      o.material = mat;
+      const c = o.geometry.getAttribute("color");
+      if (!c) {
+        console.warn(label + ": no COLOR_0, the pulse cannot be driven");
+      } else {
+        // COLOR_0 may arrive as vec3 or vec4; take R and G into our own vec2
+        const f = new Float32Array(c.count * 2);
+        for (let i = 0; i < c.count; i++) { f[i * 2] = c.getX(i); f[i * 2 + 1] = c.getY(i); }
+        o.geometry.setAttribute("aField", new THREE.BufferAttribute(f, 2));
+        let rmin = 1, rmax = 0, g0 = 0, g1 = 0;
+        for (let i = 0; i < c.count; i++) {
+          const r = c.getX(i), g = c.getY(i);
+          if (r < rmin) rmin = r;
+          if (r > rmax) rmax = r;
+          if (g > 0.5) g1++; else g0++;
+        }
+        console.log(`${label}: ${c.count} verts, R ${rmin.toFixed(3)}..${rmax.toFixed(3)}, `
+                    + `lit ${(100 * g1 / (g0 + g1)).toFixed(0)}%`);
+      }
+      scene.add(o);
+    });
+    done();
+  }, undefined, () => { fail("Could not load " + url); });
+
+  add("./web/fibre.glb", fibreMat, "fibre");
+  add("./web/cell.glb", cellMat, "cell");
+}
+
+function setPhase(p) {
+  phase = Math.min(1, Math.max(0, p));
+  scrub.value = Math.round(phase * 1000);
+
+  // the fibre runs first, then the cell, with a hold at the contact between them
+  const f = phase / FIBRE_END;
+  const c = (phase - CELL_START) / (1 - CELL_START);
+  fibreMat.uniforms.uHead.value = phase <= FIBRE_END ? f : 1.25;
+  cellMat.uniforms.uHead.value = phase >= CELL_START ? c : -0.25;
+
+  // the arrival flash sits in the gap
+  const mid = (phase - FIBRE_END) / (CELL_START - FIBRE_END);
+  flare.material.opacity = phase > FIBRE_END && phase < CELL_START
+    ? Math.sin(Math.min(1, Math.max(0, mid)) * Math.PI) * 0.95 : 0;
+  const sc = 1 + flare.material.opacity * 2.2;
+  flare.scale.setScalar(sc);
+
+  if (!meta) return;
+  let um, what;
+  if (phase <= FIBRE_END) {
+    um = f * meta.fibre.span_um;
+    what = "travelling the mossy fiber";
+  } else if (phase < CELL_START) {
+    um = meta.fibre.span_um;
+    what = "arriving at the thorn";
+  } else {
+    um = c * meta.cell_span_um;
+    what = um < meta.soma_dist_um ? "crossing to the soma"
+         : "out along the descending arbor";
+  }
+  rDist.textContent = Math.round(um).toLocaleString("en-US");
+  rWhat.textContent = what;
+}
+
+function tick() {
+  raf = requestAnimationFrame(tick);
+  const now = performance.now(), dt = now - last;
+  last = now;
+  if (playing && visible) {
+    let p = phase + dt / DUR;
+    if (p > 1) p -= 1;
+    setPhase(p);
+  }
+  controls.update();
+  renderer.render(scene, camera);
+}
+
+// a debug handle, so brightness and draw counts can be checked from the
+// console without instrumenting the render loop
+window.__viewer = () => ({
+  triangles: renderer.info.render.triangles,
+  calls: renderer.info.render.calls,
+  meshes: scene.children.filter(o => o.isMesh).length,
+  mats: mats.map(m => ({
+    base: m.uniforms.uBase.value.toArray().map(v => +v.toFixed(3)),
+    glow: m.uniforms.uGlow.value.toArray().map(v => +v.toFixed(3)),
+    head: +m.uniforms.uHead.value.toFixed(3),
+    peak: m.uniforms.uPeak.value,
+    prog: !!(m.program && m.program.program),
+    diag: m.program ? m.program.diagnostics : null
+  })),
+  sample: (() => {
+    renderer.render(scene, camera);
+    const gl = renderer.getContext();
+    const w = gl.drawingBufferWidth, h = gl.drawingBufferHeight;
+    // scan the whole buffer: the canvas is transparent where nothing is drawn,
+    // so a centre sample says nothing about whether the mesh is lit
+    const px = new Uint8Array(4 * w * h);
+    gl.readPixels(0, 0, w, h, gl.RGBA, gl.UNSIGNED_BYTE, px);
+    let mx = 0, sum = 0, n = 0;
+    for (let i = 0; i < px.length; i += 4) {
+      if (px[i + 3] < 8) continue;
+      const v = (px[i] + px[i + 1] + px[i + 2]) / 3;
+      sum += v; n++; if (v > mx) mx = v;
+    }
+    return { litPx: n, meanOfLit: n ? Math.round(sum / n) : 0, max: mx };
+  })()
+});
+
+// ---- controls -----------------------------------------------------------------
+btnPlay.addEventListener("click", () => {
+  playing = !playing;
+  btnPlay.textContent = playing ? "Pause" : "Play";
+});
+scrub.addEventListener("input", () => {
+  playing = false;
+  btnPlay.textContent = "Play";
+  setPhase(scrub.value / 1000);
+});
+btnReset.addEventListener("click", () => {
+  camera.position.set(210, 90, 210);
+  if (meta) controls.target.copy(flare.position);
+  controls.update();
+});
+
+// pause when off screen or in a hidden tab, so it costs nothing when unseen
+new IntersectionObserver(es => { visible = es[0].isIntersecting; },
+                         { threshold: 0.01 }).observe(stage);
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) visible = false;
+});
+
+if (!matchMedia("(prefers-reduced-motion: reduce)").matches) {
+  playing = true;
+  btnPlay.textContent = "Pause";
+}
+init();
+</script>
+</body>
+</html>
