@@ -148,18 +148,6 @@
   .holoframe img, .holoframe video {
     transition: filter .45s ease, transform .45s ease;
   }
-  .holoframe::before, .holoframe::after {
-    content: ""; position: absolute; pointer-events: none; z-index: 2;
-    width: 20px; height: 20px; opacity: 0;
-    transition: opacity .3s ease, inset .45s cubic-bezier(.2,.8,.25,1);
-    border: 2px solid var(--accent);
-  }
-  .holoframe::before { top: -2px; left: -2px; border-right: 0; border-bottom: 0;
-                        border-top-left-radius: 12px; }
-  .holoframe::after { bottom: -2px; right: -2px; border-left: 0; border-top: 0;
-                       border-bottom-right-radius: 12px; }
-  .holoframe:hover::before, .holoframe:focus-within::before { opacity: .9; top: -11px; left: -11px; }
-  .holoframe:hover::after, .holoframe:focus-within::after { opacity: .9; bottom: -11px; right: -11px; }
   .holoframe:hover img, .holoframe:hover video {
     filter: brightness(1.06) saturate(1.06)
             drop-shadow(0 0 16px rgba(62,150,240,.30));
@@ -246,8 +234,7 @@
   .volfig img { border: 0; border-radius: 0; background: transparent; }
 
   @media (prefers-reduced-motion: reduce) {
-    .holoframe::before, .holoframe::after,
-    .holoframe img, .holoframe video, .holo, h2::before { transition: none; }
+        .holoframe img, .holoframe video, .holo, h2::before { transition: none; }
     .playbadge { transition: none; }
     .holoframe canvas.trace { display: none; }
   }
@@ -547,35 +534,49 @@
 <script>
 (function () {
   if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-  var PAD = 22, N = 150, DUR = 2600;
+  var PAD = 26, N = 46, DUR = 2700, R = 15;
 
-  // a point at fraction t around a rounded rectangle, walking the four sides
+  // a point at fraction t around a rounded rectangle
   function ring(t, w, h, r) {
     var sw = w - 2 * r, sh = h - 2 * r;
     var arc = Math.PI * r / 2, per = 2 * sw + 2 * sh + 4 * arc;
     var d = ((t % 1) + 1) % 1 * per;
     if (d < sw) return [r + d, 0];
     d -= sw;
-    if (d < arc) { var a = d / arc * Math.PI / 2; return [w - r + r * Math.sin(a), r - r * Math.cos(a)]; }
+    if (d < arc) { var a = d / arc * 1.5708; return [w - r + r * Math.sin(a), r - r * Math.cos(a)]; }
     d -= arc;
     if (d < sh) return [w, r + d];
     d -= sh;
-    if (d < arc) { var b = d / arc * Math.PI / 2; return [w - r + r * Math.cos(b), h - r + r * Math.sin(b)]; }
+    if (d < arc) { var b = d / arc * 1.5708; return [w - r + r * Math.cos(b), h - r + r * Math.sin(b)]; }
     d -= arc;
     if (d < sw) return [w - r - d, h];
     d -= sw;
-    if (d < arc) { var c = d / arc * Math.PI / 2; return [r - r * Math.sin(c), h - r + r * Math.cos(c)]; }
+    if (d < arc) { var c = d / arc * 1.5708; return [r - r * Math.sin(c), h - r + r * Math.cos(c)]; }
     d -= arc;
     if (d < sh) return [0, h - r - d];
     d -= sh;
-    var e = d / arc * Math.PI / 2;
+    var e = (d - 0) / arc * 1.5708;
     return [r - r * Math.cos(e), r - r * Math.sin(e)];
+  }
+
+  // a small branching tree, three levels, for the decay to run along
+  function branches(x, y, ang) {
+    var segs = [];
+    (function grow(px, py, a, len, depth) {
+      var nx = px + Math.cos(a) * len, ny = py + Math.sin(a) * len;
+      segs.push([px, py, nx, ny, depth]);
+      if (depth >= 3) return;
+      var spread = 0.42 + Math.random() * 0.3;
+      grow(nx, ny, a - spread, len * 0.66, depth + 1);
+      grow(nx, ny, a + spread, len * 0.66, depth + 1);
+    })(x, y, ang, 15, 0);
+    return segs;
   }
 
   document.querySelectorAll(".holoframe").forEach(function (frame) {
     var cv = frame.querySelector("canvas.trace");
     if (!cv) return;
-    var ctx = cv.getContext("2d"), parts = [], raf = 0, t0 = 0, w = 0, h = 0, dpr = 1;
+    var ctx = cv.getContext("2d"), P = [], raf = 0, t0 = 0, w = 0, h = 0, dpr = 1, tree = null;
 
     function size() {
       var r = frame.getBoundingClientRect();
@@ -588,68 +589,82 @@
     }
 
     function seed() {
-      parts = [];
+      var s0 = ring(0, w - 2, h - 2, R);
+      P = [];
       for (var i = 0; i < N; i++) {
-        // each mote owns a spot on the boundary and starts scattered off it
-        var t = i / N + (Math.random() - 0.5) * 0.01;
-        var p = ring(t, w - 2, h - 2, 15);
-        var ang = Math.random() * Math.PI * 2, rad = 14 + Math.random() * 46;
-        parts.push({
-          t: t, tx: p[0] + 1, ty: p[1] + 1,
-          x: p[0] + 1 + Math.cos(ang) * rad, y: p[1] + 1 + Math.sin(ang) * rad,
-          vx: 0, vy: 0, r: 0.7 + Math.random() * 1.3, ph: Math.random() * 6.283
+        var a = Math.random() * 6.283, rad = 20 + Math.random() * 60;
+        P.push({
+          x: s0[0] + 1 + Math.cos(a) * rad, y: s0[1] + 1 + Math.sin(a) * rad,
+          vx: 0, vy: 0, r: 0.8 + Math.random() * 1.2,
+          jx: (Math.random() - 0.5) * 7, jy: (Math.random() - 0.5) * 7,
+          seg: 0, u: Math.random(), sp: 0.6 + Math.random() * 0.9
         });
       }
+      tree = null;
     }
 
     function draw(now) {
       var k = (now - t0) / DUR;
       if (k >= 1) { stop(); return; }
 
-      // fade what is already there rather than clearing, so motion leaves a trail
       ctx.globalCompositeOperation = "destination-out";
-      ctx.fillStyle = "rgba(0,0,0,0.14)";
+      ctx.fillStyle = "rgba(0,0,0,0.13)";
       ctx.fillRect(0, 0, w, h);
       ctx.globalCompositeOperation = "lighter";
 
-      // the sweep head runs the boundary through the middle of the shot
-      var head = (k - 0.18) / 0.62;
-      for (var i = 0; i < parts.length; i++) {
-        var p = parts[i], gather, lit = 0;
+      var GATHER = 0.26, SWEEP_END = 0.80;
 
-        if (k < 0.30) {
-          gather = k / 0.30;                       // drawn in to the boundary
-        } else if (k < 0.86) {
-          gather = 1;
-          var d = p.t - head;                      // distance behind the head
-          d = d - Math.round(d);                   // wrap to [-0.5, 0.5]
-          if (d < 0.02 && d > -0.17) lit = 1 - Math.abs(d + 0.075) / 0.095;
-        } else {
-          gather = 1 - (k - 0.86) / 0.14;          // let go, and tumble
+      if (k < GATHER) {
+        // phase one: a loose cluster draws in to the start of the run
+        var g = k / GATHER, ease = g * g * (3 - 2 * g);
+        var s0 = ring(0, w - 2, h - 2, R);
+        for (var i = 0; i < P.length; i++) {
+          var p = P[i];
+          var tx = s0[0] + 1 + p.jx * (1 - ease), ty = s0[1] + 1 + p.jy * (1 - ease);
+          p.vx = (p.vx + (tx - p.x) * 0.10) * 0.86;
+          p.vy = (p.vy + (ty - p.y) * 0.10) * 0.86;
+          p.x += p.vx; p.y += p.vy;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.r * (0.6 + ease * 0.8), 0, 6.283);
+          ctx.fillStyle = "rgba(150,215,255," + (0.25 + ease * 0.6).toFixed(3) + ")";
+          ctx.fill();
         }
-        gather = Math.max(0, Math.min(1, gather));
-        lit = Math.max(0, lit);
-
-        var ease = gather * gather * (3 - 2 * gather);
-        var ax = (p.tx - p.x) * 0.06 * ease, ay = (p.ty - p.y) * 0.06 * ease;
-        if (k >= 0.86) {
-          // turbulence on the way out, a cheap curl from two offset sines
-          var s = (1 - gather) * 0.9;
-          ax += Math.sin(p.y * 0.05 + p.ph) * s;
-          ay += Math.cos(p.x * 0.05 + p.ph) * s;
+      } else if (k < SWEEP_END) {
+        // phase two: they ARE the beam. Nothing else is drawn.
+        var q = (k - GATHER) / (SWEEP_END - GATHER);
+        var head = q * q * (3 - 2 * q);
+        for (var j = 0; j < 26; j++) {
+          var f = j / 25, tt = head - f * 0.085;
+          if (tt < 0) continue;
+          var pt = ring(tt, w - 2, h - 2, R);
+          var a2 = (1 - f) * (1 - f);
+          ctx.beginPath();
+          ctx.arc(pt[0] + 1, pt[1] + 1, 1.6 + (1 - f) * 2.0, 0, 6.283);
+          ctx.fillStyle = "rgba(220,247,255," + (a2 * 0.95).toFixed(3) + ")";
+          ctx.fill();
         }
-        p.vx = (p.vx + ax) * 0.88; p.vy = (p.vy + ay) * 0.88;
-        p.x += p.vx; p.y += p.vy;
-
-        var alpha = k < 0.30 ? k / 0.30 * 0.5 : (k < 0.86 ? 0.5 : 0.5 * (1 - (k - 0.86) / 0.14));
-        alpha = Math.min(1, alpha + lit * 0.95);
-        var rr = p.r * (1 + lit * 1.7);
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, rr, 0, 6.283);
-        ctx.fillStyle = lit > 0.15
-          ? "rgba(215,246,255," + alpha.toFixed(3) + ")"
-          : "rgba(120,196,255," + (alpha * 0.85).toFixed(3) + ")";
-        ctx.fill();
+      } else {
+        // phase three: the beam breaks up and decays along a branching tree
+        if (!tree) {
+          var e0 = ring(1, w - 2, h - 2, R);
+          tree = branches(e0[0] + 1, e0[1] + 1, -1.5708 + (Math.random() - 0.5));
+          for (var m = 0; m < P.length; m++) {
+            P[m].seg = (Math.random() * tree.length) | 0;
+            P[m].u = Math.random() * 0.3;
+          }
+        }
+        var d3 = (k - SWEEP_END) / (1 - SWEEP_END);
+        for (var n = 0; n < P.length; n++) {
+          var q2 = P[n], sg = tree[q2.seg];
+          q2.u = Math.min(1, q2.u + 0.028 * q2.sp);
+          var x = sg[0] + (sg[2] - sg[0]) * q2.u;
+          var y = sg[1] + (sg[3] - sg[1]) * q2.u;
+          var al = (1 - d3) * (1 - d3) * (0.9 - sg[4] * 0.15);
+          ctx.beginPath();
+          ctx.arc(x, y, 1.5 - sg[4] * 0.25, 0, 6.283);
+          ctx.fillStyle = "rgba(150,215,255," + Math.max(0, al).toFixed(3) + ")";
+          ctx.fill();
+        }
       }
       raf = requestAnimationFrame(draw);
     }
