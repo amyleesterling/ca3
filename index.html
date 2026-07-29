@@ -4,6 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>CA3 renderings</title>
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta name="description" content="3D renderings from a connectomic reconstruction of mouse hippocampal CA3.">
 <style>
   :root {
@@ -36,14 +39,12 @@
   figure { margin: 0 0 10px; }
   /* the banner sits outside the text column, so it needs no viewport-unit
      breakout and picks up no scrollbar offset */
-  figure.hero { margin: 0 0 40px; }
+  figure.hero { margin: 0 0 8px; }
   figure.hero img { border: 0; border-radius: 0; width: 100%; }
   figure.hero figcaption {
     font-size: 15px; max-width: 800px;
     margin: 10px auto 0; padding: 0 clamp(16px,5vw,32px);
   }
-  .wrap.top { padding-bottom: 0; }
-  .wrap.rest { padding-top: 0; }
   /* The cell sits directly on the page with no frame. Its content runs corner
      to corner on a diagonal, which leaves the top right and bottom left empty,
      so the readouts go there. Below 760px they stop overlapping and stack. */
@@ -117,7 +118,12 @@
 </style>
 </head>
 <body>
-<div class="wrap top">
+
+<figure class="hero">
+    <img src="images/00_banner.jpg" alt="CA3 population rendered in full width, coloured by cell class">
+</figure>
+
+<div class="wrap">
 
   <h1>CA3 renderings</h1>
   <p class="lede">3D renderings from a connectomic reconstruction of mouse hippocampal CA3.</p>
@@ -131,15 +137,7 @@
     <a href="https://doi.org/10.1101/2025.07.09.663979">doi:10.1101/2025.07.09.663979</a>
   </div>
 
-</div>
 
-<figure class="hero">
-    <img src="images/00_banner.jpg" alt="CA3 population rendered in full width, coloured by cell class">
-    <figcaption>Five cell classes reconstructed from the same block of tissue.
-    982 cells, roughly 124 million triangles.</figcaption>
-</figure>
-
-<div class="wrap rest">
 
   <h2>Watch it assemble</h2>
   <div class="vidwrap">
