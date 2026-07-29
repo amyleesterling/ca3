@@ -38,42 +38,109 @@
   p { margin: 0 0 14px; }
   figure { margin: 0 0 4px; }
   /* The banner sits outside the text column, so it needs no viewport-unit
-     breakout and picks up no scrollbar offset. */
-  figure.hero { margin: 0 0 8px; position: relative; }
+     breakout and picks up no scrollbar offset. It is NOT cropped: the whole
+     render sits on the page's own black. */
+  /* The black IS the page. The render sits centred in it, whole, and the panel
+     takes only the top slice. A 2.36:1 image is inherently short, so the figure
+     is given height and the image is centred inside it rather than stretched. */
+  figure.hero {
+    margin: 0 0 10px; position: relative;
+    min-height: min(84vh, 780px);
+    display: flex; align-items: center;
+    background: var(--ground);
+  }
   figure.hero img {
-    border: 0; border-radius: 0; width: 100%; display: block;
-    object-fit: cover; object-position: center 84%;
-    height: min(66vh, 660px);
+    border: 0; border-radius: 0; width: 100%; height: auto; display: block;
   }
-  /* A projected panel rather than a black bar: cool blue instead of true black,
-     faint scanlines, a lit lower edge, and bloom where it meets the render. */
+
+  /* ---- the floating screen ------------------------------------------------
+     A window hovering in front of the render, not a bar welded to the top. It
+     has edges on all four sides, it lifts off the image with a shadow, and its
+     top edge is lit as though the surface were emitting. */
   .heropanel {
-    position: absolute; top: 0; left: 0; right: 0; z-index: 2;
-    background: linear-gradient(to bottom,
-      rgba(6,13,24,.975) 0%, rgba(7,15,28,.955) 58%,
-      rgba(9,19,34,.80) 84%, rgba(10,20,36,.26) 96%, transparent 100%);
-    border-bottom: 1px solid rgba(112,190,255,.30);
-    box-shadow: 0 1px 26px rgba(62,150,240,.16);
+    position: absolute; z-index: 3;
+    top: clamp(16px, 4.2vw, 46px);
+    left: 50%; transform: translateX(-50%);
+    width: min(680px, calc(100% - 40px));
+    background:
+      linear-gradient(178deg, rgba(13,26,45,.80), rgba(7,14,26,.86) 62%, rgba(6,12,22,.90));
+    border: 1px solid rgba(122,186,246,.26);
+    border-radius: 3px;
+    backdrop-filter: blur(9px) saturate(1.15);
+    -webkit-backdrop-filter: blur(9px) saturate(1.15);
+    box-shadow:
+      0 0 0 1px rgba(6,12,22,.55),
+      0 18px 54px rgba(0,0,0,.62),
+      0 0 40px rgba(62,150,240,.10);
   }
+  /* the lit upper edge, brightest at the centre, the way an emitting surface reads */
+  .heropanel::before {
+    content: ""; position: absolute; left: 9%; right: 9%; top: -1px; height: 1px;
+    background: linear-gradient(90deg, transparent,
+      rgba(150,212,255,.85) 22%, rgba(214,240,255,1) 50%,
+      rgba(150,212,255,.85) 78%, transparent);
+    box-shadow: 0 0 11px rgba(120,196,255,.62);
+  }
+  /* scanlines, faint enough that you feel them rather than see them */
   .heropanel::after {
     content: ""; position: absolute; inset: 0; pointer-events: none;
+    border-radius: 3px;
     background-image: repeating-linear-gradient(0deg,
-      rgba(150,205,255,.05) 0 1px, transparent 1px 3px);
+      rgba(158,210,255,.035) 0 1px, transparent 1px 3px);
   }
   .heropanel .inner {
-    position: relative; z-index: 1; max-width: 800px; margin: 0 auto;
-    padding: clamp(20px,4vw,40px) clamp(16px,5vw,32px) clamp(22px,4vw,38px);
+    position: relative; z-index: 1;
+    padding: clamp(20px,2.9vw,30px) clamp(20px,3.2vw,34px) clamp(18px,2.6vw,26px);
   }
-  .heropanel h1 { margin: 0 0 5px; }
-  .heropanel .lede { margin: 0 0 16px; color: #A9BDD6; }
-  .heropanel .cite {
-    margin: 0; background: rgba(14,26,44,.62);
-    border: 1px solid rgba(96,160,230,.20);
+  /* corner ticks: two hairlines each, inset, so the frame reads as machined */
+  .heropanel i {
+    position: absolute; width: 11px; height: 11px; pointer-events: none;
+    border: 0 solid rgba(150,208,252,.55);
   }
-  /* a phone gets a shallow strip at 2.36:1, so crop squarer to leave the panel
-     somewhere to sit and the neurons somewhere to show */
-  @media (max-width: 680px) {
-    figure.hero img { height: 168vw; min-height: 580px; }
+  .heropanel i.tl { top: 6px; left: 6px; border-top-width: 1px; border-left-width: 1px; }
+  .heropanel i.tr { top: 6px; right: 6px; border-top-width: 1px; border-right-width: 1px; }
+  .heropanel i.bl { bottom: 6px; left: 6px; border-bottom-width: 1px; border-left-width: 1px; }
+  .heropanel i.br { bottom: 6px; right: 6px; border-bottom-width: 1px; border-right-width: 1px; }
+
+  /* the eyebrow line: a live dot, a label, and a rail that runs out to the edge */
+  .heroeyebrow {
+    display: flex; align-items: center; gap: 9px;
+    margin: 0 0 13px; font-size: 9.5px; letter-spacing: .2em;
+    text-transform: uppercase; color: rgba(140,190,240,.9);
+  }
+  .heroeyebrow s {
+    width: 5px; height: 5px; border-radius: 50%; flex: 0 0 auto;
+    background: rgb(120,205,255); box-shadow: 0 0 8px rgba(120,205,255,.9);
+    text-decoration: none;
+  }
+  .heroeyebrow u {
+    flex: 1 1 auto; height: 5px; text-decoration: none;
+    background-image: repeating-linear-gradient(90deg,
+      rgba(140,196,246,.42) 0 1px, transparent 1px 7px);
+  }
+  .heropanel h1 {
+    margin: 0; font-size: clamp(26px,4.4vw,38px); font-weight: 500;
+    letter-spacing: -.02em; line-height: 1.08;
+  }
+  .heropanel .lede {
+    margin: 9px 0 0; font-size: 15px; line-height: 1.62;
+    color: #A7BCD6; max-width: 46ch;
+  }
+  .heropanel .rule {
+    height: 1px; margin: 17px 0 0;
+    background: linear-gradient(90deg, rgba(122,186,246,.34), rgba(122,186,246,.05) 72%, transparent);
+  }
+  .heropanel .meta {
+    margin: 12px 0 0; font-size: 11.5px; letter-spacing: .1em;
+    text-transform: uppercase; color: rgba(126,146,172,.95);
+    display: flex; flex-wrap: wrap; gap: 4px 16px;
+  }
+  .heropanel .meta b { color: #CBD8E8; font-weight: 500; letter-spacing: .06em; }
+
+  @media (max-width: 620px) {
+    .heropanel { position: static; transform: none; width: auto;
+                  margin: 0 14px -34px; border-radius: 3px; }
+    figure.hero { padding-top: 0; }
   }
   figure.hero figcaption {
     font-size: 15px; max-width: 800px;
@@ -326,27 +393,35 @@
 <body>
 
 <figure class="hero">
-  <img src="images/00_banner.jpg" alt="CA3 population rendered in full width, coloured by cell class">
-  <div class="heropanel"><div class="inner">
-    <h1>CA3 renderings</h1>
-    <p class="lede">3D renderings from a connectomic reconstruction of mouse hippocampal CA3.</p>
-    <div class="cite" style="margin-top:6px">
-      <span class="t"><a href="https://www.biorxiv.org/content/10.1101/2025.07.09.663979v1">Connectomic reconstruction from hippocampal CA3
-      reveals spatially graded mossy fiber inputs and selective feedforward inhibition to
-      pyramidal cells</a></span>
-      Zheng, Park, Hammerschmith, Lu, Yu, Sorek, Silverman, Jordan, Sterling, Silversmith,
-      Collman, Seung, Tank &middot; bioRxiv, 15 July 2025 &middot;
-      <a href="https://doi.org/10.1101/2025.07.09.663979">doi:10.1101/2025.07.09.663979</a>
-      <br>The dataset is shared through <a href="https://pyr.ai">Pyr</a>, an online
-      platform for hippocampal connectomics.
+  <img src="images/00_banner.jpg" alt="CA3 population rendered in full, coloured by cell class">
+  <div class="heropanel">
+    <i class="tl"></i><i class="tr"></i><i class="bl"></i><i class="br"></i>
+    <div class="inner">
+      <p class="heroeyebrow"><s></s>connectomic reconstruction<u></u>mouse ca3</p>
+      <h1>CA3 renderings</h1>
+      <p class="lede">Every image on this page is measured geometry from a single
+      block of mouse hippocampus.</p>
+      <div class="rule"></div>
+      <p class="meta"><span><b>982</b> cells rendered</span><span><b>124M</b> triangles</span><span><b>25,723</b> synapses</span></p>
     </div>
-  </div></div>
+  </div>
 </figure>
 
 <div class="wrap">
 
 
 
+
+<div class="cite" style="margin-top:6px">
+    <span class="t"><a href="https://www.biorxiv.org/content/10.1101/2025.07.09.663979v1">Connectomic reconstruction from hippocampal CA3
+    reveals spatially graded mossy fiber inputs and selective feedforward inhibition to
+    pyramidal cells</a></span>
+    Zheng, Park, Hammerschmith, Lu, Yu, Sorek, Silverman, Jordan, Sterling, Silversmith,
+    Collman, Seung, Tank &middot; bioRxiv, 15 July 2025 &middot;
+    <a href="https://doi.org/10.1101/2025.07.09.663979">doi:10.1101/2025.07.09.663979</a>
+    <br>The dataset is shared through <a href="https://pyr.ai">Pyr</a>, an online
+    platform for hippocampal connectomics.
+  </div>
 
   <div class="stats">
     <div class="stat"><div class="v">1,815</div><div class="k">pyramidal cells</div></div>
