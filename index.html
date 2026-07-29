@@ -35,6 +35,48 @@
   p { margin: 0 0 14px; }
   figure { margin: 0 0 10px; }
   figure.hero { margin: 0 0 44px; }
+  /* The cell sits directly on the page with no frame. Its content runs corner
+     to corner on a diagonal, which leaves the top right and bottom left empty,
+     so the readouts go there. Below 760px they stop overlapping and stack. */
+  .cellstage { position: relative; margin: 30px 0 44px; }
+  .cellstage img {
+    display: block; width: 100%; height: auto;
+    border: 0; border-radius: 0; background: transparent;
+  }
+  .holo {
+    background: linear-gradient(158deg, rgba(18,30,52,.86), rgba(9,14,26,.74));
+    border: 1px solid rgba(88,148,238,.34); border-radius: 3px;
+    padding: 13px 15px 12px; max-width: 268px;
+    box-shadow: 0 0 22px rgba(0,0,0,.55);
+  }
+  .holo .k {
+    font-size: 10px; letter-spacing: .19em; text-transform: uppercase;
+    color: #6BA4E6; margin: 0 0 5px;
+  }
+  .holo .v {
+    font-size: 27px; font-weight: 500; line-height: 1.05; margin: 0;
+    font-variant-numeric: tabular-nums; color: #EFF4FB;
+  }
+  .holo .d { font-size: 12.5px; color: #93A3BC; margin: 5px 0 0; line-height: 1.5; }
+  .holo + .holo { margin-top: 10px; }
+  @media (min-width: 760px) {
+    .holo-tr { position: absolute; top: 1%; right: 0; }
+    .holo-bl { position: absolute; bottom: 3%; left: 0; }
+  }
+  @media (max-width: 759px) {
+    .holo { max-width: none; margin-top: 10px; }
+    .holo-tr { margin-bottom: 10px; }
+  }
+
+  /* Gallery: one column on a phone, two once there is room. */
+  .gal { display: grid; gap: 18px; margin-top: 14px; }
+  @media (min-width: 620px) { .gal { grid-template-columns: 1fr 1fr; } }
+  .gal figure { margin: 0; }
+  .gal a { display: block; }
+  .gal img { border-radius: 8px; border: 1px solid var(--line); }
+  .gal figcaption { font-size: 13px; line-height: 1.55; margin-top: 7px; }
+  .gal .wide { grid-column: 1 / -1; }
+
   video {
     display: block; width: 100%; height: auto; border-radius: 10px;
     border: 2px solid var(--edge); background: #000;
@@ -161,6 +203,39 @@
     blue thorns push out through the terminal that engulfs them.</figcaption>
   </figure>
 
+  <div class="cellstage">
+    <img src="images/15_cell_alpha.png"
+         alt="One thorny pyramidal cell in blue with the six mossy fibers that contact it in gold">
+    <div class="holo-tr">
+      <div class="holo">
+        <p class="k">this one cell receives</p>
+        <p class="v">165</p>
+        <p class="d">mossy fiber synapses, and they arrive from only <b>6</b> fibers.
+        A single terminal makes dozens of contacts on one thorn.</p>
+      </div>
+      <div class="holo">
+        <p class="k">reconstructed at</p>
+        <p class="v">4.5M</p>
+        <p class="d">triangles, with no simplification applied, which is why the
+        thorny excrescences hold their shape this close up.</p>
+      </div>
+    </div>
+    <div class="holo-bl">
+      <div class="holo">
+        <p class="k">in the full volume</p>
+        <p class="v">1,815</p>
+        <p class="d">pyramidal cells, <b>229</b> inhibitory cells and more than
+        <b>55,000</b> mossy fibers were reconstructed.</p>
+      </div>
+      <div class="holo">
+        <p class="k">the dividing line</p>
+        <p class="v">10</p>
+        <p class="d">mossy fiber inputs separates thorny cells from sparsely thorny
+        ones. Thorny cells reach 165. Sparsely thorny cells stop at <b>3</b>.</p>
+      </div>
+    </div>
+  </div>
+
   <div class="vidwrap" style="margin-top:20px">
     <figure>
       <video controls playsinline muted loop preload="metadata" poster="images/14_cell_zoom.jpg">
@@ -174,12 +249,19 @@
   <h2>Every synapse these cells make</h2>
   <figure>
     <img src="images/07_synapses.jpg" alt="Presynaptic CA3 cells with all of their synapses marked in gold">
-    <figcaption>The 16 presynaptic cells in pink, with all <b>25,723</b> of their synapses
-    marked in gold. Real coordinates from the reconstruction, not estimated positions.</figcaption>
+    <figcaption>Sixteen CA3 pyramidal cells in pink. Fifteen of them have their axon
+    traced through the volume, and those axons make <b>25,723</b> synapses onto
+    <b>6,348</b> other cells in the same block of tissue. Every one is drawn at its real
+    measured coordinate, not an estimated position.</figcaption>
   </figure>
-  <div class="note">Those synapses land on <b>6,348 distinct partner cells</b>. The gold
-  beads string along each axon because that is physically where the contacts are made,
-  one after another as the axon passes its targets.</div>
+  <div class="note">That works out to a median of <b>1,949 outgoing synapses per cell</b>,
+  which sounds impossibly high until you remember what CA3 is for. Its pyramidal cells are
+  the most heavily interconnected population in the hippocampus, wiring back onto each
+  other through vast recurrent axon collaterals, and this is the network that theory says
+  lets the hippocampus complete a whole memory from a fragment of one. The gold beads
+  string along each axon because that is physically where the contacts are made, one
+  after another as the axon passes its targets. Most partners are touched just once:
+  <b>58%</b> receive a single synapse.</div>
 
   <div class="vidwrap" style="margin-top:20px">
     <figure>
@@ -195,7 +277,7 @@
   fibers thread horizontally through them. Every gold strand is an axon arriving from
   the dentate gyrus.</p>
   <figure>
-    <img src="images/12_mf_sea.jpg" alt="Pyramidal cell bodies in blue with mossy fibers threading through in gold">
+    <img src="images/g3_sea-of-mossy-fibers.jpg" alt="Pyramidal cell bodies in blue with mossy fibers threading through in gold">
   </figure>
 
   <h2>The classification, reproduced</h2>
@@ -211,6 +293,59 @@
   Sparsely thorny cells max out at <b>3</b>, and not one crosses the threshold. Only
   <b>9 of 28</b> interneurons receive mossy fiber input at all, which is the selectivity
   the feedforward inhibition result describes.</div>
+
+  <h2>Gallery</h2>
+  <p>Stills from the same reconstruction, at full size. Tap any of them to open the
+  large version.</p>
+  <div class="gal">
+
+    <figure class="wide">
+      <a href="images/g2_ca3-population-bouton-inset_full.jpg">
+        <img src="images/g2_ca3-population-bouton-inset.jpg"
+             alt="The CA3 population as a broad V shaped band with a circular inset on one mossy fiber bouton"></a>
+      <figcaption>The reconstructed population seen face on, gold mossy fibers threading
+      through crowds of cells. The inset follows one mossy fiber axon down to its boutons,
+      with a partner cell process pressed against it.</figcaption>
+    </figure>
+
+    <figure class="wide">
+      <a href="images/g1_pyramidal-soma-lineup_full.jpg">
+        <img src="images/g1_pyramidal-soma-lineup.jpg"
+             alt="A row of CA3 pyramidal cell bodies, each in a different colour"></a>
+      <figcaption>Pyramidal cell bodies lined up as they sit in the layer, one colour each.
+      The apical dendrites climb out of the top carrying their thorny excrescences, and the
+      basal dendrites fan out below.</figcaption>
+    </figure>
+
+    <figure>
+      <a href="images/16_cell_wide_full.jpg">
+        <img src="images/16_cell_wide.jpg"
+             alt="A single thorny pyramidal cell with six mossy fibers, in widescreen"></a>
+      <figcaption>One thorny pyramidal cell and the six mossy fibers that reach it.</figcaption>
+    </figure>
+
+    <figure>
+      <a href="images/07_synapses.jpg">
+        <img src="images/07_synapses.jpg"
+             alt="Presynaptic CA3 cells in pink with their synapses marked in gold"></a>
+      <figcaption>25,723 synapses, each one at its measured position in the tissue.</figcaption>
+    </figure>
+
+    <figure>
+      <a href="images/13_thorn_macro.jpg">
+        <img src="images/13_thorn_macro.jpg"
+             alt="Close view of a thorny excrescence"></a>
+      <figcaption>A thorny excrescence up close. This tangle is a single spine.</figcaption>
+    </figure>
+
+    <figure>
+      <a href="images/09_hero_bouton.jpg">
+        <img src="images/09_hero_bouton.jpg"
+             alt="A gold mossy fiber terminal wrapped around a thorny excrescence"></a>
+      <figcaption>A mossy fiber terminal wrapped around one of those thorns.</figcaption>
+    </figure>
+
+  </div>
 
   <h2>Colour key</h2>
   <figure><img src="images/04_key.jpg" alt="Colour key for the six populations"></figure>
