@@ -261,16 +261,6 @@
   .holoframe:hover .hud i.bl { transform: translate(-7px,7px); }
   .holoframe:hover .hud i.br { transform: translate(7px,7px); }
 
-  /* a measurement rail, ticks every 12px with a taller one every fifth */
-  .hud .rail {
-    position: absolute; left: 12%; right: 12%; bottom: -7px; height: 7px;
-    background-image:
-      repeating-linear-gradient(90deg, rgba(196,228,255,.42) 0 1px, transparent 1px 12px),
-      repeating-linear-gradient(90deg, rgba(196,228,255,.62) 0 1px, transparent 1px 60px);
-    background-size: 100% 4px, 100% 7px;
-    background-position: bottom left, bottom left;
-    background-repeat: repeat-x;
-  }
   .hud b {
     position: absolute; font-weight: 500; font-size: 9.5px; letter-spacing: .17em;
     text-transform: uppercase; color: rgba(190,222,252,.82);
@@ -625,7 +615,7 @@
     var hud = document.createElement("div");
     hud.className = "hud";
     hud.innerHTML = '<i class="tl"></i><i class="tr"></i><i class="bl"></i>' +
-                    '<i class="br"></i><span class="rail"></span>' +
+                    '<i class="br"></i>' +
                     '<b class="a"></b><b class="b"></b><b class="c"></b>';
     f.appendChild(hud);
     var A = hud.querySelector("b.a"), B = hud.querySelector("b.b"),
