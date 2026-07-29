@@ -35,6 +35,11 @@
   p { margin: 0 0 14px; }
   figure { margin: 0 0 10px; }
   figure.hero { margin: 0 0 44px; }
+  video {
+    display: block; width: 100%; height: auto; border-radius: 10px;
+    border: 2px solid var(--edge); background: #000;
+  }
+  .vidwrap { max-width: 420px; margin: 0 auto; }
   figure.hero img { border-width: 2px; }
   figure.hero figcaption { font-size: 15px; }
   img {
@@ -78,6 +83,18 @@
     <figcaption>Five cell classes reconstructed from the same block of tissue.
     982 cells, roughly 124 million triangles.</figcaption>
   </figure>
+
+  <h2>Watch it assemble</h2>
+  <div class="vidwrap">
+    <figure>
+      <video controls playsinline muted loop preload="metadata" poster="images/01_current.jpg">
+        <source src="video/build_sequence.mp4" type="video/mp4">
+      </video>
+      <figcaption>Populations arrive in circuit order: mossy fibers first as the incoming
+      signal, then the CA3 cells they drive, then the wider pyramidal population, and
+      inhibitory interneurons last.</figcaption>
+    </figure>
+  </div>
 
   <h2>What the study found</h2>
 
@@ -136,6 +153,15 @@
   <div class="note">Those synapses land on <b>6,348 distinct partner cells</b>. The gold
   beads string along each axon because that is physically where the contacts are made,
   one after another as the axon passes its targets.</div>
+
+  <div class="vidwrap" style="margin-top:20px">
+    <figure>
+      <video controls playsinline muted loop preload="metadata" poster="images/07_synapses.jpg">
+        <source src="video/synapse_cloud.mp4" type="video/mp4">
+      </video>
+      <figcaption>The same synapses appearing across the volume.</figcaption>
+    </figure>
+  </div>
 
   <h2>The classification, reproduced</h2>
   <p>The study separates thorny from sparsely thorny cells by mossy fiber convergence,
