@@ -34,7 +34,16 @@
   h3 { margin: 26px 0 4px; font-size: 18px; font-weight: 500; }
   p { margin: 0 0 14px; }
   figure { margin: 0 0 10px; }
-  figure.hero { margin: 0 0 44px; }
+  /* the banner sits outside the text column, so it needs no viewport-unit
+     breakout and picks up no scrollbar offset */
+  figure.hero { margin: 0 0 40px; }
+  figure.hero img { border: 0; border-radius: 0; width: 100%; }
+  figure.hero figcaption {
+    font-size: 15px; max-width: 800px;
+    margin: 10px auto 0; padding: 0 clamp(16px,5vw,32px);
+  }
+  .wrap.top { padding-bottom: 0; }
+  .wrap.rest { padding-top: 0; }
   /* The cell sits directly on the page with no frame. Its content runs corner
      to corner on a diagonal, which leaves the top right and bottom left empty,
      so the readouts go there. Below 760px they stop overlapping and stack. */
@@ -86,8 +95,6 @@
   .vidwrap.is-wide { max-width: 100%; }
   .vidfull { max-width: 100%; margin: 0 auto; }
   figure.badge { max-width: 380px; margin: 0 auto 10px; }
-  figure.hero img { border-width: 2px; }
-  figure.hero figcaption { font-size: 15px; }
   img {
     display: block; width: 100%; height: auto; border-radius: 10px;
     border: 2px solid var(--edge); background: #000;
@@ -110,7 +117,7 @@
 </style>
 </head>
 <body>
-<div class="wrap">
+<div class="wrap top">
 
   <h1>CA3 renderings</h1>
   <p class="lede">3D renderings from a connectomic reconstruction of mouse hippocampal CA3.</p>
@@ -124,11 +131,15 @@
     <a href="https://doi.org/10.1101/2025.07.09.663979">doi:10.1101/2025.07.09.663979</a>
   </div>
 
-  <figure class="hero">
+</div>
+
+<figure class="hero">
     <img src="images/00_banner.jpg" alt="CA3 population rendered in full width, coloured by cell class">
     <figcaption>Five cell classes reconstructed from the same block of tissue.
     982 cells, roughly 124 million triangles.</figcaption>
-  </figure>
+</figure>
+
+<div class="wrap rest">
 
   <h2>Watch it assemble</h2>
   <div class="vidwrap">
@@ -191,21 +202,6 @@
   name. A mossy fiber ends on one in a single enormous terminal, making dozens of contacts
   at one site rather than one contact in many places. This cell receives
   <b>165 mossy fiber synapses from just 6 fibers</b>.</p>
-  <div class="vidwrap">
-    <figure>
-      <video controls playsinline muted loop preload="metadata" poster="images/08_hero.jpg">
-        <source src="video/hero_shot.mp4" type="video/mp4">
-      </video>
-      <figcaption>Starting on the thorns at native resolution, then pulling back as the
-      six mossy fibers appear. 4.5 million triangles on this one cell.</figcaption>
-    </figure>
-  </div>
-  <figure style="margin-top:16px">
-    <img src="images/09_hero_bouton.jpg" alt="A gold mossy fiber terminal wrapping a thorny excrescence">
-    <figcaption>A mossy fiber terminal in gold, wrapped around a thorny excrescence. The
-    blue thorns push out through the terminal that engulfs them.</figcaption>
-  </figure>
-
   <div class="cellstage">
     <img src="images/15_cell_alpha.png"
          alt="One thorny pyramidal cell in blue with the six mossy fibers that contact it in gold">
@@ -280,13 +276,10 @@
   same event is here.</a></div>
 
   <h2>Every synapse these cells make</h2>
-  <figure>
-    <img src="images/07_synapses.jpg" alt="Presynaptic CA3 cells with all of their synapses marked in gold">
-    <figcaption>Sixteen CA3 pyramidal cells in pink. Fifteen of them have their axon
-    traced through the volume, and those axons make <b>25,723</b> synapses onto
-    <b>6,348</b> other cells in the same block of tissue. Every one is drawn at its real
-    measured coordinate, not an estimated position.</figcaption>
-  </figure>
+  <p>Sixteen CA3 pyramidal cells were traced. Fifteen of them have their axon followed
+  through the volume, and those axons make <b>25,723</b> synapses onto <b>6,348</b> other
+  cells in the same block of tissue. Every one sits at its real measured coordinate, not
+  an estimated position.</p>
   <div class="note">That works out to a median of <b>1,949 outgoing synapses per cell</b>,
   which sounds impossibly high until you remember what CA3 is for. Its pyramidal cells are
   the most heavily interconnected population in the hippocampus, wiring back onto each
@@ -361,7 +354,9 @@
       <a href="images/07_synapses.jpg">
         <img src="images/07_synapses.jpg"
              alt="Presynaptic CA3 cells in pink with their synapses marked in gold"></a>
-      <figcaption>25,723 synapses, each one at its measured position in the tissue.</figcaption>
+      <figcaption>Sixteen presynaptic cells in pink, with all 25,723 of their synapses
+      in gold. The beads string along each axon because that is physically where the
+      contacts are made, one after another as it passes its targets.</figcaption>
     </figure>
 
     <figure>
@@ -375,7 +370,8 @@
       <a href="images/09_hero_bouton.jpg">
         <img src="images/09_hero_bouton.jpg"
              alt="A gold mossy fiber terminal wrapped around a thorny excrescence"></a>
-      <figcaption>A mossy fiber terminal wrapped around one of those thorns.</figcaption>
+      <figcaption>A mossy fiber terminal in gold, wrapped around a thorny excrescence.
+      The blue thorns push out through the terminal that engulfs them.</figcaption>
     </figure>
 
   </div>
