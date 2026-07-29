@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Action potential, three cuts</title>
+<style>
+  :root {
+    --ink: #EFF2F7; --dim: #9AA2B1; --faint: #666E7C;
+    --ground: #07080B; --panel: #0F1218; --line: #1D222B;
+    --edge: #4A5568; --accent: #3E96F0;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--ground); color: var(--ink);
+    font: 400 17px/1.7 ui-sans-serif, -apple-system, "Segoe UI", Roboto, sans-serif;
+    -webkit-text-size-adjust: 100%;
+  }
+  .wrap { max-width: 860px; margin: 0 auto; padding: clamp(20px,5vw,44px) clamp(16px,5vw,32px) 80px; }
+  h1 { margin: 0 0 6px; font-size: clamp(23px,6vw,32px); font-weight: 500; letter-spacing: -.015em; }
+  .lede { margin: 0 0 30px; color: var(--dim); font-size: 16px; }
+  h2 { margin: 40px 0 4px; font-size: 13px; font-weight: 500; letter-spacing: .12em;
+       text-transform: uppercase; color: var(--faint); }
+  p { margin: 0 0 14px; }
+  video { display: block; width: 100%; height: auto; border-radius: 10px;
+          border: 2px solid var(--edge); background: #000; }
+  figcaption { margin-top: 8px; color: var(--dim); font-size: 14.5px; }
+  figure { margin: 10px 0 0; }
+  .note { margin: 26px 0 0; padding: 13px 16px; background: var(--panel);
+          border-left: 3px solid var(--accent); border-radius: 0 8px 8px 0;
+          color: var(--dim); font-size: 15px; }
+  .note b { color: var(--ink); font-weight: 500; }
+  footer { margin-top: 50px; padding-top: 20px; border-top: 1px solid var(--line);
+           color: var(--faint); font-size: 14px; }
+  footer a { color: var(--accent); text-decoration: none; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>An action potential, three ways</h1>
+  <p class="lede">One mossy fiber and the CA3 pyramidal cell it contacts. Same event
+  in all three, different camera.</p>
+
+  <div class="note">The pulse is not a sweep across the screen. Every point on these
+  meshes carries its own distance measured along the cell's skeleton, so the wavefront
+  follows the real branching and splits wherever the dendrite splits. On the fiber it
+  runs from the far end toward the boutons. In the cell it spreads outward from the
+  <b>53 synapses</b> themselves, which is why it leaves the thorn rather than the soma.
+  The soma sits <b>130.5 &micro;m</b> of cable from the contacts, and that is what sets
+  the moment it lights.</div>
+
+  <h2>Camera riding the wavefront</h2>
+  <figure>
+    <video controls playsinline muted loop preload="metadata">
+      <source src="video/ap_follow.mp4" type="video/mp4">
+    </video>
+    <figcaption>The lens tracks the pulse itself, down the fiber and then out through
+    the arbor, and focus rides with it.</figcaption>
+  </figure>
+
+  <h2>Static, held on the thorn</h2>
+  <figure>
+    <video controls playsinline muted loop preload="metadata">
+      <source src="video/ap_synapse.mp4" type="video/mp4">
+    </video>
+    <figcaption>Tight on the contact, with the rest of the cell running out of frame.
+    All 53 synapses sit inside a box less than <b>7 &micro;m</b> across: one mossy fiber
+    bouton wrapped around one thorny excrescence.</figcaption>
+  </figure>
+
+  <h2>Static, holding the whole cell</h2>
+  <figure>
+    <video controls playsinline muted loop preload="metadata">
+      <source src="video/ap_cell.mp4" type="video/mp4">
+    </video>
+    <figcaption>Wide enough to watch the depolarisation reach every branch, including
+    the moment the soma goes.</figcaption>
+  </figure>
+
+  <footer>
+    Skeletons from meshparty, synapses from CAVE, rendered in Blender.
+    <a href="./">Back to the renderings</a>.
+  </footer>
+
+</div>
+</body>
+</html>
