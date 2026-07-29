@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CA3 renderings</title>
+<meta name="description" content="3D renderings from a connectomic reconstruction of mouse hippocampal CA3.">
+<style>
+  :root {
+    --ink: #EFF2F7; --dim: #9AA2B1; --faint: #666E7C;
+    --ground: #07080B; --panel: #0F1218; --line: #1D222B;
+    --edge: #4A5568; --accent: #3E96F0;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--ground); color: var(--ink);
+    font: 400 17px/1.7 ui-sans-serif, -apple-system, "Segoe UI", Roboto, sans-serif;
+    -webkit-text-size-adjust: 100%;
+  }
+  .wrap { max-width: 800px; margin: 0 auto; padding: clamp(20px,5vw,44px) clamp(16px,5vw,32px) 80px; }
+  h1 { margin: 0 0 6px; font-size: clamp(24px,6vw,34px); font-weight: 500; letter-spacing: -.015em; text-wrap: balance; }
+  .lede { margin: 0 0 22px; color: var(--dim); font-size: 16px; }
+  .cite {
+    margin: 0 0 40px; padding: 16px 18px; background: var(--panel);
+    border-radius: 10px; font-size: 14.5px; color: var(--dim); line-height: 1.6;
+  }
+  .cite a { color: var(--accent); text-decoration: none; }
+  .cite a:hover { text-decoration: underline; }
+  .cite .t { color: var(--ink); display: block; margin-bottom: 6px; }
+  h2 {
+    margin: 44px 0 10px; font-size: 13px; font-weight: 500; letter-spacing: .12em;
+    text-transform: uppercase; color: var(--faint);
+  }
+  h3 { margin: 26px 0 4px; font-size: 18px; font-weight: 500; }
+  p { margin: 0 0 14px; }
+  figure { margin: 0 0 10px; }
+  img {
+    display: block; width: 100%; height: auto; border-radius: 10px;
+    border: 2px solid var(--edge); background: #000;
+  }
+  figcaption { margin-top: 8px; color: var(--dim); font-size: 14px; }
+  table { width: 100%; border-collapse: collapse; margin: 14px 0 0; font-size: 15px; }
+  th { text-align: left; font-weight: 500; color: var(--faint); font-size: 12px;
+        letter-spacing: .08em; text-transform: uppercase; padding: 0 0 8px; }
+  td { padding: 8px 0; border-top: 1px solid var(--line); font-variant-numeric: tabular-nums; }
+  td:last-child, th:last-child { text-align: right; }
+  .note {
+    margin: 14px 0 0; padding: 13px 16px; background: var(--panel);
+    border-left: 3px solid var(--accent); border-radius: 0 8px 8px 0;
+    color: var(--dim); font-size: 15px;
+  }
+  .note b, .cap b { color: var(--ink); font-weight: 500; }
+  footer { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--line);
+            color: var(--faint); font-size: 14px; }
+  footer a { color: var(--accent); text-decoration: none; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>CA3 renderings</h1>
+  <p class="lede">3D renderings from a connectomic reconstruction of mouse hippocampal CA3.</p>
+
+  <div class="cite">
+    <span class="t"><a href="https://www.biorxiv.org/content/10.1101/2025.07.09.663979v1">Connectomic reconstruction from hippocampal CA3
+    reveals spatially graded mossy fiber inputs and selective feedforward inhibition to
+    pyramidal cells</a></span>
+    Zheng, Park, Hammerschmith, Lu, Yu, Sorek, Silverman, Jordan, Sterling, Silversmith,
+    Collman, Seung, Tank &middot; bioRxiv, 15 July 2025 &middot;
+    <a href="https://doi.org/10.1101/2025.07.09.663979">doi:10.1101/2025.07.09.663979</a>
+  </div>
+
+  <h2>What the study found</h2>
+
+  <p>The hippocampus is where experience becomes memory, and CA3 is the part that binds
+  the pieces of an event together. To understand how, you need to know not just which
+  cells are present but exactly which ones talk to each other.</p>
+
+  <p>This study took a block of mouse CA3, imaged it with an electron microscope, and
+  traced every neuron and every connection inside it. The result is a complete wiring
+  diagram of a small piece of real brain: <b>1,815 pyramidal cells</b>, the main
+  excitatory neurons, <b>229 inhibitory cells</b>, and more than <b>55,000 mossy
+  fibers</b>, the axons carrying signals in from the neighbouring dentate gyrus.</p>
+
+  <h3>Not all pyramidal cells are alike</h3>
+  <p>Some are covered in elaborate spiny structures called thorny excrescences, and these
+  cells receive many mossy fiber inputs. Others, the sparsely thorny cells, receive almost
+  none. The split is sharp rather than gradual, so these are genuinely two kinds of cell
+  rather than two ends of one continuum.</p>
+
+  <h3>Input is unevenly spread across space</h3>
+  <p>Cells further along the region receive substantially more mossy fiber contacts than
+  cells nearer the beginning. Cells sharing the same incoming fibers also sit closer
+  together than chance would predict, suggesting the wiring is organised rather than
+  arbitrary. Curiously, the cells receiving the most inputs get them through
+  <i>smaller</i> terminals holding fewer vesicles, so more connections does not simply
+  mean more of everything.</p>
+
+  <h3>Inhibition is targeted, not general</h3>
+  <p>Mossy fibers also drive inhibitory neurons, which act as brakes on the circuit. But
+  they drive only the inhibitory neurons that go on to target thorny cells. Those serving
+  sparsely thorny cells receive no mossy fiber input at all. So the same signal that
+  excites one type of cell also recruits the brake belonging specifically to that type,
+  leaving the other type untouched.</p>
+
+  <h2>The full population</h2>
+  <figure>
+    <img src="images/01_current.jpg" alt="CA3 population rendered vertically with population labels">
+    <figcaption>982 cells, roughly 124 million triangles. Mossy fibers in gold, presynaptic
+    CA3 cells in pink, thorny pyramidal in blue, sparsely thorny in purple, inhibitory
+    interneurons in emerald.</figcaption>
+  </figure>
+
+  <h2>Two populations, different territory</h2>
+  <figure>
+    <img src="images/06_blue_green.jpg" alt="Thorny pyramidal cells in blue with inhibitory interneurons in green">
+    <figcaption>Thorny pyramidal cells and inhibitory interneurons, nothing else in the scene.</figcaption>
+  </figure>
+  <div class="note">Interneuron cell bodies sit <b>below</b> the pyramidal layer and send
+  their axons up through it. That is why green threads among the blue in the full render:
+  those are axons passing through, not cells sharing the space.</div>
+
+  <h2>Thorny pyramidal cells alone</h2>
+  <figure>
+    <img src="images/03_thorny.jpg" alt="The 182 thorny pyramidal cells rendered alone">
+    <figcaption>All 182 thorny pyramidal cells, isolated.</figcaption>
+  </figure>
+
+  <h2>The classification, reproduced</h2>
+  <p>The study separates thorny from sparsely thorny cells by mossy fiber convergence,
+  drawing the line at more than 10 inputs. That split reproduces cleanly in this subset.</p>
+  <table>
+    <tr><th>population</th><th>with MF input</th><th>median inputs</th><th>above 10</th></tr>
+    <tr><td>Thorny pyramidal</td><td>94 / 182</td><td>22</td><td>71%</td></tr>
+    <tr><td>Sparsely thorny</td><td>8 / 68</td><td>1</td><td>0%</td></tr>
+    <tr><td>Inhibitory</td><td>9 / 28</td><td>2</td><td>22%</td></tr>
+  </table>
+  <div class="note">Thorny cells reach <b>165</b> mossy fiber inputs at the top end.
+  Sparsely thorny cells max out at <b>3</b>, and not one crosses the threshold. Only
+  <b>9 of 28</b> interneurons receive mossy fiber input at all, which is the selectivity
+  the feedforward inhibition result describes.</div>
+
+  <h2>Colour key</h2>
+  <figure><img src="images/04_key.jpg" alt="Colour key for the six populations"></figure>
+
+  <footer>
+    Meshes pulled from the segmentation through
+    <a href="https://caveclient.readthedocs.io/">CAVE</a> and rendered in Blender.
+    <a href="https://github.com/amyleesterling/ca3">Source on GitHub</a>.
+  </footer>
+
+</div>
+</body>
+</html>
