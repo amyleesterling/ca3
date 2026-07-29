@@ -37,31 +37,43 @@
   h3 { margin: 26px 0 4px; font-size: 18px; font-weight: 500; }
   p { margin: 0 0 14px; }
   figure { margin: 0 0 4px; }
-  /* the banner sits outside the text column, so it needs no viewport-unit
-     breakout and picks up no scrollbar offset */
+  /* The banner sits outside the text column, so it needs no viewport-unit
+     breakout and picks up no scrollbar offset. */
   figure.hero { margin: 0 0 8px; position: relative; }
   figure.hero img {
     border: 0; border-radius: 0; width: 100%; display: block;
-    object-fit: cover; object-position: center 42%;
+    object-fit: cover; object-position: center 84%;
+    height: min(66vh, 660px);
   }
-  /* the banner is bright edge to edge, so the title needs its own ground */
-  figure.hero::after {
-    content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 72%;
-    background: linear-gradient(to top,
-      rgba(7,8,11,.95) 0%, rgba(7,8,11,.80) 26%, rgba(7,8,11,.30) 58%, transparent 100%);
-    pointer-events: none; z-index: 1;
+  /* A projected panel rather than a black bar: cool blue instead of true black,
+     faint scanlines, a lit lower edge, and bloom where it meets the render. */
+  .heropanel {
+    position: absolute; top: 0; left: 0; right: 0; z-index: 2;
+    background: linear-gradient(to bottom,
+      rgba(6,13,24,.975) 0%, rgba(7,15,28,.955) 58%,
+      rgba(9,19,34,.80) 84%, rgba(10,20,36,.26) 96%, transparent 100%);
+    border-bottom: 1px solid rgba(112,190,255,.30);
+    box-shadow: 0 1px 26px rgba(62,150,240,.16);
   }
-  .herotitle { position: absolute; left: 0; right: 0; bottom: 0; z-index: 2; }
-  .herotitle .inner {
-    max-width: 800px; margin: 0 auto;
-    padding: 0 clamp(16px,5vw,32px) clamp(10px,1.6vw,16px);
+  .heropanel::after {
+    content: ""; position: absolute; inset: 0; pointer-events: none;
+    background-image: repeating-linear-gradient(0deg,
+      rgba(150,205,255,.05) 0 1px, transparent 1px 3px);
   }
-  .herotitle h1 { margin: 0 0 2px; }
-  .herotitle .lede { margin: 0; color: #C2CBD9; }
-  /* at 2.36:1 a phone gets a 159px strip, too shallow to hold a title, so crop
-     to something squarer rather than shrinking the type */
+  .heropanel .inner {
+    position: relative; z-index: 1; max-width: 800px; margin: 0 auto;
+    padding: clamp(20px,4vw,40px) clamp(16px,5vw,32px) clamp(22px,4vw,38px);
+  }
+  .heropanel h1 { margin: 0 0 5px; }
+  .heropanel .lede { margin: 0 0 16px; color: #A9BDD6; }
+  .heropanel .cite {
+    margin: 0; background: rgba(14,26,44,.62);
+    border: 1px solid rgba(96,160,230,.20);
+  }
+  /* a phone gets a shallow strip at 2.36:1, so crop squarer to leave the panel
+     somewhere to sit and the neurons somewhere to show */
   @media (max-width: 680px) {
-    figure.hero img { height: 64vw; min-height: 250px; }
+    figure.hero img { height: 168vw; min-height: 580px; }
   }
   figure.hero figcaption {
     font-size: 15px; max-width: 800px;
@@ -270,7 +282,12 @@
   .hud b.a { top: 9px; left: 22px; }
   .hud b.b { top: 9px; right: 22px; color: rgba(232,169,58,.9); }
   .hud b.c { bottom: 9px; left: 22px; }
-  @media (max-width: 560px) { .hud { display: none; } }
+  /* no hover on touch, and the canvas overhang would push past the viewport */
+  @media (max-width: 700px), (hover: none) {
+    .hud { display: none; }
+    .holoframe canvas.trace { display: none; }
+    .holoframe { margin: 10px 0; }
+  }
   @media (prefers-reduced-motion: reduce) {
     .hud, .hud i { transition: none; }
   }
@@ -310,24 +327,24 @@
 
 <figure class="hero">
   <img src="images/00_banner.jpg" alt="CA3 population rendered in full width, coloured by cell class">
-  <div class="herotitle"><div class="inner">
+  <div class="heropanel"><div class="inner">
     <h1>CA3 renderings</h1>
     <p class="lede">3D renderings from a connectomic reconstruction of mouse hippocampal CA3.</p>
+    <div class="cite" style="margin-top:6px">
+      <span class="t"><a href="https://www.biorxiv.org/content/10.1101/2025.07.09.663979v1">Connectomic reconstruction from hippocampal CA3
+      reveals spatially graded mossy fiber inputs and selective feedforward inhibition to
+      pyramidal cells</a></span>
+      Zheng, Park, Hammerschmith, Lu, Yu, Sorek, Silverman, Jordan, Sterling, Silversmith,
+      Collman, Seung, Tank &middot; bioRxiv, 15 July 2025 &middot;
+      <a href="https://doi.org/10.1101/2025.07.09.663979">doi:10.1101/2025.07.09.663979</a>
+      <br>The dataset is shared through <a href="https://pyr.ai">Pyr</a>, an online
+      platform for hippocampal connectomics.
+    </div>
   </div></div>
 </figure>
 
 <div class="wrap">
 
-  <div class="cite" style="margin-top:6px">
-    <span class="t"><a href="https://www.biorxiv.org/content/10.1101/2025.07.09.663979v1">Connectomic reconstruction from hippocampal CA3
-    reveals spatially graded mossy fiber inputs and selective feedforward inhibition to
-    pyramidal cells</a></span>
-    Zheng, Park, Hammerschmith, Lu, Yu, Sorek, Silverman, Jordan, Sterling, Silversmith,
-    Collman, Seung, Tank &middot; bioRxiv, 15 July 2025 &middot;
-    <a href="https://doi.org/10.1101/2025.07.09.663979">doi:10.1101/2025.07.09.663979</a>
-    <br>The dataset is shared through <a href="https://pyr.ai">Pyr</a>, an online
-    platform for hippocampal connectomics.
-  </div>
 
 
 
