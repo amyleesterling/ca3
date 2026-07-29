@@ -105,15 +105,15 @@
   @media (min-width: 620px) { .gal { grid-template-columns: 1fr 1fr; } }
   .gal figure { margin: 0; }
   .gal a { display: block; }
-  .gal img { border-radius: 8px; border: 1px solid var(--line); }
+  .gal img { border-radius: 8px; border: 0; }
   .gal figcaption { font-size: 13px; line-height: 1.55; margin-top: 7px; }
   .gal .wide { grid-column: 1 / -1; }
-  .gal video { border-radius: 8px; border: 1px solid var(--line); }
+  .gal video { border-radius: 8px; border: 0; }
   .gal .tall { max-width: 340px; }
 
   video {
     display: block; width: 100%; height: auto; border-radius: 10px;
-    border: 2px solid var(--edge); background: #000;
+    border: 0; background: #000;
   }
   .vidwrap { max-width: 420px; margin: 0 auto; }
   /* the 420px cap frames a phone-shaped cut; a widescreen one needs the room */
@@ -122,7 +122,7 @@
   figure.badge { max-width: 380px; margin: 0 auto 10px; }
   img {
     display: block; width: 100%; height: auto; border-radius: 10px;
-    border: 2px solid var(--edge); background: #000;
+    border: 0; background: #000;
   }
   figcaption { margin-top: 8px; color: var(--dim); font-size: 14px; }
   table { width: 100%; border-collapse: collapse; margin: 14px 0 0; font-size: 15px; }
@@ -162,22 +162,6 @@
     filter: brightness(1.06) saturate(1.06)
             drop-shadow(0 0 16px rgba(62,150,240,.30));
   }
-  /* the scan line: one pass on hover, riding just inside the frame */
-  .holoframe .scan {
-    position: absolute; left: 3px; right: 3px; top: 0; height: 2px; z-index: 3;
-    background: linear-gradient(90deg, transparent,
-      rgba(120,205,255,.85) 18%, rgba(200,240,255,.95) 50%,
-      rgba(120,205,255,.85) 82%, transparent);
-    box-shadow: 0 0 14px rgba(80,180,255,.75);
-    opacity: 0; pointer-events: none; border-radius: 2px;
-  }
-  .holoframe:hover .scan { animation: sweep 1.5s cubic-bezier(.4,0,.35,1); }
-  @keyframes sweep {
-    0%   { opacity: 0;   transform: translateY(0); }
-    12%  { opacity: .95; }
-    88%  { opacity: .55; }
-    100% { opacity: 0;   transform: translateY(var(--scanh, 320px)); }
-  }
 
   /* section headings get a readout tick that extends on hover */
   h2 { position: relative; padding-left: 16px; }
@@ -195,13 +179,58 @@
     box-shadow: 0 0 26px rgba(0,0,0,.6), 0 0 22px rgba(62,150,240,.18);
   }
 
+
+  /* A glow that runs the perimeter, sitting ON the frame rather than across the
+     picture. The conic gradient is masked to a 2px ring, so only the border
+     lights and the image underneath is never touched. */
+  @property --holoang { syntax: "<angle>"; initial-value: 0deg; inherits: false; }
+  .holoframe .edge {
+    content: ""; position: absolute; inset: 0; border-radius: 10px; padding: 2px;
+    z-index: 3; pointer-events: none; opacity: 0;
+    transition: opacity .5s ease;
+    background: conic-gradient(from var(--holoang),
+      transparent 0 62%,
+      rgba(90,180,255,.55) 76%,
+      rgba(190,240,255,.95) 84%,
+      rgba(90,180,255,.55) 92%,
+      transparent 100%);
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+            mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+            mask-composite: exclude;
+  }
+  .holoframe:hover .edge, .holoframe:focus-within .edge {
+    opacity: 1; animation: holotrace 2.6s linear infinite;
+  }
+  @keyframes holotrace { to { --holoang: 360deg; } }
+
+  /* a few slow motes, so a hovered frame feels alive rather than lit */
+  .holoframe .dot {
+    position: absolute; bottom: 8%; width: 4px; height: 4px; border-radius: 50%;
+    background: rgba(150,215,255,.9);
+    box-shadow: 0 0 8px rgba(90,180,255,.9);
+    opacity: 0; z-index: 3; pointer-events: none;
+  }
+  .holoframe:hover .dot { animation: holorise 4.2s ease-out infinite; }
+  .holoframe .dot:nth-of-type(1) { left: 16%; animation-delay: 0s; }
+  .holoframe .dot:nth-of-type(2) { left: 38%; animation-delay: .9s; }
+  .holoframe .dot:nth-of-type(3) { left: 63%; animation-delay: 1.9s; }
+  .holoframe .dot:nth-of-type(4) { left: 84%; animation-delay: 2.9s; }
+  @keyframes holorise {
+    0%   { opacity: 0;   transform: translateY(0) scale(.6); }
+    14%  { opacity: .85; }
+    70%  { opacity: .5; }
+    100% { opacity: 0;   transform: translateY(-62px) scale(1.15); }
+  }
+
   .volfig { margin: 26px 0 10px; }
   .volfig img { border: 0; border-radius: 0; background: transparent; }
 
   @media (prefers-reduced-motion: reduce) {
     .holoframe::before, .holoframe::after,
     .holoframe img, .holoframe video, .holo, h2::before { transition: none; }
-    .holoframe:hover .scan { animation: none; }
+    .holoframe:hover .edge { animation: none; }
+    .holoframe:hover .dot { animation: none; opacity: 0; }
   }
 
 </style>
@@ -230,7 +259,7 @@
 
 
   <div class="holoframe"><figure class="volfig">
-    <span class="scan"></span><img src="images/21_volume.png" alt="Wireframe diagram of the reconstructed tissue block with one pyramidal cell inside it for scale">
+    <i class="edge"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><img src="images/21_volume.png" alt="Wireframe diagram of the reconstructed tissue block with one pyramidal cell inside it for scale">
     <figcaption>The block that was cut, imaged and reconstructed: <b>1 x 1 x 0.1 mm</b>
     of mouse CA3. One pyramidal cell is drawn inside it at true relative scale. Nearly
     two thousand of them are in there, threaded through by more than fifty five
@@ -240,7 +269,7 @@
   <h2>Watch it assemble</h2>
   <div class="vidwrap">
     <div class="holoframe"><figure>
-      <span class="scan"></span><video controls playsinline muted loop preload="metadata" poster="images/01_current.jpg">
+      <i class="edge"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><video controls playsinline muted loop preload="metadata" poster="images/01_current.jpg">
         <source src="video/build_sequence.mp4" type="video/mp4">
       </video>
       <figcaption>Populations arrive in circuit order: mossy fibers first as the incoming
@@ -268,7 +297,7 @@
   rather than two ends of one continuum.</p>
 
   <div class="holoframe"><figure>
-    <span class="scan"></span><img src="images/11_thorn_somas.jpg" alt="Pyramidal cell bodies covered in thorny excrescences">
+    <i class="edge"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><img src="images/11_thorn_somas.jpg" alt="Pyramidal cell bodies covered in thorny excrescences">
     <figcaption>Thorny excrescences on pyramidal cell bodies. Each balloon like
     cluster is a single elaborate spine, and a mossy fiber terminal wraps around it.</figcaption>
   </figure></div>
@@ -290,7 +319,7 @@
 
   <h2>182 thorny pyramidal cells</h2>
   <div class="holoframe"><figure class="badge">
-    <span class="scan"></span><img src="images/03_thorny.jpg" alt="Thorny pyramidal cells rendered alone">
+    <i class="edge"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><img src="images/03_thorny.jpg" alt="Thorny pyramidal cells rendered alone">
   </figure></div>
 
   <h2>Inside a single cell</h2>
@@ -333,7 +362,7 @@
 
   <div class="vidwrap" style="margin-top:20px">
     <div class="holoframe"><figure>
-      <span class="scan"></span><video controls playsinline muted loop preload="metadata"
+      <i class="edge"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><video controls playsinline muted loop preload="metadata"
              poster="images/14_cell_zoom.jpg"
              data-wide="video/cell_zoomout_wide.mp4"
              data-wide-poster="images/17_cell_wide_poster.jpg">
@@ -353,7 +382,7 @@
   real branching and splits wherever the cable splits.</p>
   <div class="vidfull">
     <div class="holoframe"><figure>
-      <span class="scan"></span><video controls playsinline muted loop preload="metadata" poster="images/20_ap_six_poster.jpg">
+      <i class="edge"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><video controls playsinline muted loop preload="metadata" poster="images/20_ap_six_poster.jpg">
         <source src="video/ap_six.mp4" type="video/mp4">
       </video>
       <figcaption>Eighteen seconds. All <b>165</b> mossy fiber synapses onto this one
@@ -388,7 +417,7 @@
 
   <div class="vidwrap" style="margin-top:20px">
     <div class="holoframe"><figure>
-      <span class="scan"></span><video controls playsinline muted loop preload="metadata" poster="images/10_story.jpg">
+      <i class="edge"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><video controls playsinline muted loop preload="metadata" poster="images/10_story.jpg">
         <source src="video/synapse_story.mp4" type="video/mp4">
       </video>
       <figcaption>The presynaptic cells fade up, their synapses bloom across the volume, and then the postsynaptic partners arrive around them.</figcaption>
@@ -400,7 +429,7 @@
   fibers thread horizontally through them. Every gold strand is an axon arriving from
   the dentate gyrus.</p>
   <div class="holoframe"><figure>
-    <span class="scan"></span><img src="images/g3_sea-of-mossy-fibers.jpg" alt="Pyramidal cell bodies in blue with mossy fibers threading through in gold">
+    <i class="edge"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><img src="images/g3_sea-of-mossy-fibers.jpg" alt="Pyramidal cell bodies in blue with mossy fibers threading through in gold">
   </figure></div>
 
   <h2>The classification, reproduced</h2>
@@ -424,7 +453,7 @@
 
     <div class="holoframe"><figure class="wide">
       <a href="images/g2_ca3-population-bouton-inset_full.jpg">
-        <span class="scan"></span><img src="images/g2_ca3-population-bouton-inset.jpg"
+        <i class="edge"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><img src="images/g2_ca3-population-bouton-inset.jpg"
              alt="The CA3 population as a broad V shaped band with a circular inset on one mossy fiber bouton"></a>
       <figcaption>The reconstructed population seen face on, gold mossy fibers threading
       through crowds of cells. The inset follows one mossy fiber axon down to its boutons,
@@ -433,7 +462,7 @@
 
     <div class="holoframe"><figure class="wide">
       <a href="images/g1_pyramidal-soma-lineup_full.jpg">
-        <span class="scan"></span><img src="images/g1_pyramidal-soma-lineup.jpg"
+        <i class="edge"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><img src="images/g1_pyramidal-soma-lineup.jpg"
              alt="A row of CA3 pyramidal cell bodies, each in a different colour"></a>
       <figcaption>Pyramidal cell bodies lined up as they sit in the layer, one colour each.
       The apical dendrites climb out of the top carrying their thorny excrescences, and the
@@ -441,7 +470,7 @@
     </figure></div>
 
     <div class="holoframe"><figure class="tall">
-      <span class="scan"></span><video controls playsinline muted loop preload="metadata" poster="images/19_partners.jpg">
+      <i class="edge"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><video controls playsinline muted loop preload="metadata" poster="images/19_partners.jpg">
         <source src="video/cell_partners.mp4" type="video/mp4">
       </video>
       <figcaption>These six mossy fibers are not private to this cell. Each carries on
@@ -452,14 +481,14 @@
 
     <div class="holoframe"><figure>
       <a href="images/16_cell_wide_full.jpg">
-        <span class="scan"></span><img src="images/16_cell_wide.jpg"
+        <i class="edge"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><img src="images/16_cell_wide.jpg"
              alt="A single thorny pyramidal cell with six mossy fibers, in widescreen"></a>
       <figcaption>One thorny pyramidal cell and the six mossy fibers that reach it.</figcaption>
     </figure></div>
 
     <div class="holoframe"><figure>
       <a href="images/07_synapses.jpg">
-        <span class="scan"></span><img src="images/07_synapses.jpg"
+        <i class="edge"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><img src="images/07_synapses.jpg"
              alt="Presynaptic CA3 cells in pink with their synapses marked in gold"></a>
       <figcaption>Sixteen presynaptic cells in pink, with all 25,723 of their synapses
       in gold. The beads string along each axon because that is physically where the
@@ -468,14 +497,14 @@
 
     <div class="holoframe"><figure>
       <a href="images/13_thorn_macro.jpg">
-        <span class="scan"></span><img src="images/13_thorn_macro.jpg"
+        <i class="edge"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><img src="images/13_thorn_macro.jpg"
              alt="Close view of a thorny excrescence"></a>
       <figcaption>A thorny excrescence up close. This tangle is a single spine.</figcaption>
     </figure></div>
 
     <div class="holoframe"><figure>
       <a href="images/09_hero_bouton.jpg">
-        <span class="scan"></span><img src="images/09_hero_bouton.jpg"
+        <i class="edge"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><img src="images/09_hero_bouton.jpg"
              alt="A gold mossy fiber terminal wrapped around a thorny excrescence"></a>
       <figcaption>A mossy fiber terminal in gold, wrapped around a thorny excrescence.
       The blue thorns push out through the terminal that engulfs them.</figcaption>
@@ -484,7 +513,7 @@
   </div>
 
   <h2>Colour key</h2>
-  <div class="holoframe"><figure><span class="scan"></span><img src="images/04_key.jpg" alt="Colour key for the six populations"></figure></div>
+  <div class="holoframe"><figure><i class="edge"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><img src="images/04_key.jpg" alt="Colour key for the six populations"></figure></div>
 
   <footer>
     Meshes pulled from the segmentation through
@@ -493,20 +522,6 @@
   </footer>
 
 </div>
-<script>
-(function () {
-  // the scan line travels its own frame's height, measured after layout, so a
-  // tall portrait video and a wide still both end their sweep on the edge
-  var set = function () {
-    document.querySelectorAll(".holoframe").forEach(function (f) {
-      f.style.setProperty("--scanh", Math.round(f.getBoundingClientRect().height) + "px");
-    });
-  };
-  set();
-  addEventListener("resize", set);
-  addEventListener("load", set);
-})();
-</script>
 <script>
 (function () {
   // Vertical is the markup default, so a phone never starts fetching the wide
