@@ -34,6 +34,9 @@
   h3 { margin: 26px 0 4px; font-size: 18px; font-weight: 500; }
   p { margin: 0 0 14px; }
   figure { margin: 0 0 10px; }
+  figure.hero { margin: 0 0 44px; }
+  figure.hero img { border-width: 2px; }
+  figure.hero figcaption { font-size: 15px; }
   img {
     display: block; width: 100%; height: auto; border-radius: 10px;
     border: 2px solid var(--edge); background: #000;
@@ -70,6 +73,12 @@
     <a href="https://doi.org/10.1101/2025.07.09.663979">doi:10.1101/2025.07.09.663979</a>
   </div>
 
+  <figure class="hero">
+    <img src="images/01_current.jpg" alt="CA3 population rendered vertically, coloured by cell class">
+    <figcaption>Five cell classes reconstructed from the same block of tissue.
+    982 cells, roughly 124 million triangles.</figcaption>
+  </figure>
+
   <h2>What the study found</h2>
 
   <p>The hippocampus is where experience becomes memory, and CA3 is the part that binds
@@ -102,14 +111,6 @@
   sparsely thorny cells receive no mossy fiber input at all. So the same signal that
   excites one type of cell also recruits the brake belonging specifically to that type,
   leaving the other type untouched.</p>
-
-  <h2>The full population</h2>
-  <figure>
-    <img src="images/01_current.jpg" alt="CA3 population rendered vertically with population labels">
-    <figcaption>982 cells, roughly 124 million triangles. Mossy fibers in gold, presynaptic
-    CA3 cells in pink, thorny pyramidal in blue, sparsely thorny in purple, inhibitory
-    interneurons in emerald.</figcaption>
-  </figure>
 
   <h2>Two populations, different territory</h2>
   <figure>
