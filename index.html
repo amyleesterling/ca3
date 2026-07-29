@@ -82,6 +82,8 @@
     border: 2px solid var(--edge); background: #000;
   }
   .vidwrap { max-width: 420px; margin: 0 auto; }
+  /* the 420px cap frames a phone-shaped cut; a widescreen one needs the room */
+  .vidwrap.is-wide { max-width: 100%; }
   figure.badge { max-width: 380px; margin: 0 auto 10px; }
   figure.hero img { border-width: 2px; }
   figure.hero figcaption { font-size: 15px; }
@@ -238,7 +240,10 @@
 
   <div class="vidwrap" style="margin-top:20px">
     <figure>
-      <video controls playsinline muted loop preload="metadata" poster="images/14_cell_zoom.jpg">
+      <video controls playsinline muted loop preload="metadata"
+             poster="images/14_cell_zoom.jpg"
+             data-wide="video/cell_zoomout_wide.mp4"
+             data-wide-poster="images/16_cell_wide.jpg">
         <source src="video/cell_zoomout.mp4" type="video/mp4">
       </video>
       <figcaption>Eight seconds, thorns to whole cell. The mossy fibers arrive
@@ -357,5 +362,24 @@
   </footer>
 
 </div>
+<script>
+(function () {
+  // Vertical is the markup default, so a phone never starts fetching the wide
+  // file. Anything with room swaps to the widescreen master and lets the
+  // wrapper grow, since the 420px cap only makes sense for a phone framing.
+  if (!window.matchMedia || !matchMedia("(min-width: 760px)").matches) return;
+  var vids = document.querySelectorAll("video[data-wide]");
+  for (var i = 0; i < vids.length; i++) {
+    var v = vids[i], src = v.querySelector("source");
+    if (!src) continue;
+    src.src = v.getAttribute("data-wide");
+    var poster = v.getAttribute("data-wide-poster");
+    if (poster) v.poster = poster;
+    var wrap = v.closest(".vidwrap");
+    if (wrap) wrap.classList.add("is-wide");
+    v.load();
+  }
+})();
+</script>
 </body>
 </html>
