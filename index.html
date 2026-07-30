@@ -138,9 +138,16 @@
   .heropanel .meta b { color: #CBD8E8; font-weight: 500; letter-spacing: .06em; }
 
   @media (max-width: 620px) {
+    /* figure.hero is a centring flex box on desktop. Left as flex here, the now
+       static panel becomes a ROW sibling and lands outside the viewport, measured
+       at x=389 in a 375px window, while min-height leaves a 780px empty box with
+       the banner floating in the middle of it. Block flow fixes both. */
+    figure.hero { display: block; min-height: 0; padding-top: 0; }
+    /* negative TOP margin, because the panel follows the image in the DOM: this
+       lifts it onto the foot of the banner. A negative bottom margin, which is
+       what was here before, would instead have dragged the citation up under it. */
     .heropanel { position: static; transform: none; width: auto;
-                  margin: 0 14px -34px; border-radius: 3px; }
-    figure.hero { padding-top: 0; }
+                  margin: -34px 14px 26px; border-radius: 3px; }
   }
   figure.hero figcaption {
     font-size: 15px; max-width: 800px;
