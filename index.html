@@ -40,13 +40,16 @@
   /* The banner sits outside the text column, so it needs no viewport-unit
      breakout and picks up no scrollbar offset. It is NOT cropped: the whole
      render sits on the page's own black. */
-  /* The black IS the page. The render sits centred in it, whole, and the panel
-     takes only the top slice. A 2.36:1 image is inherently short, so the figure
-     is given height and the image is centred inside it rather than stretched. */
+  /* The black IS the page. The render runs full bleed from the very top of the
+     document and the panel takes only the top slice.
+     The figure deliberately has NO min-height and does NOT centre the image.
+     It used to be a flex box of min(84vh,780px) centring a short banner, which
+     padded black above and below the render: the render then began part way down
+     the page and its lower edge read as a crop rather than as the end of the
+     image. Shrink-wrapping the image gives both for free, so long as the source
+     render is itself uncropped. */
   figure.hero {
     margin: 0 0 10px; position: relative;
-    min-height: min(84vh, 780px);
-    display: flex; align-items: center;
     background: var(--ground);
   }
   figure.hero img {
