@@ -55,6 +55,26 @@
   figure.hero img {
     border: 0; border-radius: 0; width: 100%; height: auto; display: block;
   }
+  /* The render must never end in a hard horizontal edge. Its lower half is faded
+     into the page black and the article is lifted up over it, so the descending
+     arbor dissolves behind the citation and the stat tiles rather than being cut
+     off. This only works because the source render clears all four edges: the
+     old 2.36:1 banner ran off the top and bottom of its own JPEG. */
+  figure.hero::after {
+    content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 62%;
+    background: linear-gradient(to bottom,
+      rgba(7,8,11,0) 0%, rgba(7,8,11,.32) 28%,
+      rgba(7,8,11,.76) 60%, var(--ground) 92%);
+    pointer-events: none; z-index: 1;
+  }
+  @media (min-width: 621px) {
+    /* A percentage margin resolves against the containing block's WIDTH, and the
+       banner is 77.8% of that width tall, so -34% lifts the article about 44% of
+       the way up the render. Keep the two numbers in step if the banner aspect
+       ever changes. */
+    figure.hero { margin-bottom: -34%; }
+    .wrap { position: relative; z-index: 2; }
+  }
 
   /* ---- the floating screen ------------------------------------------------
      A window hovering in front of the render, not a bar welded to the top. It
@@ -63,7 +83,12 @@
   .heropanel {
     position: absolute; z-index: 3;
     top: clamp(16px, 4.2vw, 46px);
-    left: 50%; transform: translateX(-50%);
+    /* Centred with auto margins rather than left:50% + translateX(-50%), so that
+       `transform` is free for the hover lift and nothing else. When centring and
+       lifting shared the transform, animating it across the 620px breakpoint,
+       where the panel becomes static with transform:none, stranded the panel
+       half its width off centre until the page was reloaded. */
+    left: 0; right: 0; margin-left: auto; margin-right: auto;
     width: min(680px, calc(100% - 40px));
     background:
       linear-gradient(178deg, rgba(13,26,45,.80), rgba(7,14,26,.86) 62%, rgba(6,12,22,.90));
@@ -75,6 +100,28 @@
       0 0 0 1px rgba(6,12,22,.55),
       0 18px 54px rgba(0,0,0,.62),
       0 0 40px rgba(62,150,240,.10);
+  }
+  /* The panel already floats in front of the render, so hovering lifts it a
+     little further off and brightens its edge. Scoped to real pointers so a tap
+     on a phone does not leave it stuck in the hovered state. */
+  @media (hover: hover) and (min-width: 621px) {
+    .heropanel {
+      transition: transform .28s cubic-bezier(.22,.61,.36,1),
+                  box-shadow .28s cubic-bezier(.22,.61,.36,1),
+                  border-color .28s ease;
+    }
+    .heropanel:hover {
+      transform: translateY(-4px);
+      border-color: rgba(122,186,246,.42);
+      box-shadow:
+        0 0 0 1px rgba(6,12,22,.55),
+        0 30px 74px rgba(0,0,0,.70),
+        0 0 56px rgba(62,150,240,.18);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .heropanel { transition: none; }
+    .heropanel:hover { transform: none; }
   }
   /* the lit upper edge, brightest at the centre, the way an emitting surface reads */
   .heropanel::before {
@@ -139,6 +186,25 @@
     display: flex; flex-wrap: wrap; gap: 4px 16px;
   }
   .heropanel .meta b { color: #CBD8E8; font-weight: 500; letter-spacing: .06em; }
+  /* Sits under the readouts, quieter than they are: this is authorship, not data. */
+  .heropanel .byline {
+    margin: 11px 0 0; padding-top: 10px;
+    border-top: 1px solid rgba(122,186,246,.14);
+    font-size: 11.5px; letter-spacing: .1em; text-transform: uppercase;
+    color: rgba(126,146,172,.9);
+  }
+  /* The handle is deliberately only in the footer. The top box carries the
+     authorship, not the social link, so the hero stays a caption and not a
+     call to action. */
+  footer .credit {
+    margin: 0 0 10px; font-size: 12px; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--dim);
+  }
+  footer .credit a {
+    color: #9EC8F2; letter-spacing: .06em; text-decoration: none;
+    border-bottom: 1px solid rgba(158,200,242,.28);
+  }
+  footer .credit a:hover { border-bottom-color: rgba(158,200,242,.7); }
 
   @media (max-width: 620px) {
     /* figure.hero is a centring flex box on desktop. Left as flex here, the now
@@ -403,16 +469,17 @@
 <body>
 
 <figure class="hero">
-  <img src="images/00_banner.jpg" alt="CA3 population rendered in full, coloured by cell class">
+  <img src="images/00_banner_tall.jpg" alt="CA3 population rendered in full, coloured by cell class">
   <div class="heropanel">
     <i class="tl"></i><i class="tr"></i><i class="bl"></i><i class="br"></i>
     <div class="inner">
       <p class="heroeyebrow"><s></s>connectomic reconstruction<u></u>mouse ca3</p>
       <h1>CA3 renderings</h1>
-      <p class="lede">Every image on this page is measured geometry from a single
-      block of mouse hippocampus.</p>
+      <p class="lede">Every image on this page is rendered from an electron
+      microscope reconstruction of a single block of mouse hippocampus.</p>
       <div class="rule"></div>
       <p class="meta"><span><b>982</b> cells rendered</span><span><b>124M</b> triangles</span><span><b>25,723</b> synapses</span></p>
+      <p class="byline">Rendered by Amy Sterling</p>
     </div>
   </div>
 </figure>
@@ -795,6 +862,8 @@
   <figure><div class="holoframe"><canvas class="trace"></canvas><img src="images/04_key.jpg" alt="Colour key for the six populations"></div></figure>
 
   <footer>
+    <p class="credit">Rendered by Amy Sterling
+      <a href="https://x.com/amyneurons" rel="me noopener">@amyneurons</a></p>
     Meshes pulled from the segmentation through
     <a href="https://caveclient.readthedocs.io/">CAVE</a> and rendered in Blender.
     <a href="cortex.html">Cortex renderings, MICrONS</a> &middot;
