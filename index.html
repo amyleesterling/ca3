@@ -447,9 +447,9 @@
   </figure>
 
   <h2>Overnight renders</h2>
-  <p>Rendered on one workstation overnight, newest first. The gradient still below
-  is finished; the three widescreen masters are still on the GPU as of this writing
-  and will appear here as they land.</p>
+  <p>Rendered on one workstation in a single night, 103 minutes of GPU time for
+  the four pieces below. The two widescreen masters also replace their vertical
+  cuts further down this page when you are on a wide screen.</p>
 
   <figure data-hud="304 cells, 0 to 235 inputs">
     <div class="holoframe"><canvas class="trace"></canvas><img src="images/22_gradient.jpg" alt="304 CA3 pyramidal cells arranged along the curve of the cell layer, coloured from deep blue through violet to gold by how many mossy fiber inputs each one receives"></div>
@@ -463,13 +463,45 @@
     at the far end, where the busiest cells reach 160 and above.</figcaption>
   </figure>
 
-  <p class="note">Still rendering: the population build sequence and the synapse story
-  as widescreen masters, and a slow pass across the gradient above.</p>
+  <figure>
+    <div class="holoframe"><canvas class="trace"></canvas><video controls playsinline muted loop preload="metadata" poster="images/25_orbit.jpg">
+      <source src="video/gradient_orbit.mp4" type="video/mp4">
+    </video></div>
+    <figcaption><b>A slow pass across the gradient.</b> Twelve seconds, a sixth of a
+    turn, eased at both ends so the arch is read rather than spun. The colour is the
+    same measurement as the still above. What the movement adds is depth: these are
+    304 cells occupying a curved sheet of tissue, not points on a scatter plot.</figcaption>
+  </figure>
+
+  <div class="grid">
+    <figure>
+      <div class="holoframe"><canvas class="trace"></canvas><video controls playsinline muted loop preload="metadata" poster="images/23_build_wide.jpg">
+        <source src="video/build_sequence_wide.mp4" type="video/mp4">
+      </video></div>
+      <figcaption><b>The population, widescreen.</b> Twenty seconds. Populations arrive
+      in circuit order: mossy fibers first, then the cells they drive, then the wider
+      pyramidal population, and inhibitory interneurons last.</figcaption>
+    </figure>
+    <figure>
+      <div class="holoframe"><canvas class="trace"></canvas><video controls playsinline muted loop preload="metadata" poster="images/24_story_wide.jpg">
+        <source src="video/synapse_story_wide.mp4" type="video/mp4">
+      </video></div>
+      <figcaption><b>The synapse story, widescreen.</b> Nineteen seconds. The same
+      sequence as further down the page, rendered for a wide screen rather than
+      cropped to one.</figcaption>
+    </figure>
+  </div>
+
+  <p class="note">These two are tall subjects in a wide frame, so they carry black at
+  the sides. The population is deeper than it is broad and nothing is cropped to hide
+  that.</p>
 
   <h2>Watch it assemble</h2>
   <div class="vidwrap">
     <figure data-hud="982 cells · 124M triangles">
-      <div class="holoframe"><canvas class="trace"></canvas><video controls playsinline muted loop preload="metadata" poster="images/01_current.jpg">
+      <div class="holoframe"><canvas class="trace"></canvas><video controls playsinline muted loop preload="metadata" poster="images/01_current.jpg"
+             data-wide="video/build_sequence_wide.mp4"
+             data-wide-poster="images/23_build_wide.jpg">
         <source src="video/build_sequence.mp4" type="video/mp4">
       </video></div>
       <figcaption>Populations arrive in circuit order: mossy fibers first as the incoming
@@ -617,7 +649,9 @@
 
   <div class="vidwrap" style="margin-top:20px">
     <figure data-hud="25,723 synapses">
-      <div class="holoframe"><canvas class="trace"></canvas><video controls playsinline muted loop preload="metadata" poster="images/10_story.jpg">
+      <div class="holoframe"><canvas class="trace"></canvas><video controls playsinline muted loop preload="metadata" poster="images/10_story.jpg"
+             data-wide="video/synapse_story_wide.mp4"
+             data-wide-poster="images/24_story_wide.jpg">
         <source src="video/synapse_story.mp4" type="video/mp4">
       </video></div>
       <figcaption>The presynaptic cells fade up, their synapses bloom across the volume, and then the postsynaptic partners arrive around them.</figcaption>
