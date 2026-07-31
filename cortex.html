@@ -147,6 +147,9 @@
     display: flex; flex-wrap: wrap; gap: 4px 16px;
   }
   .heropanel .meta b { color: #CBD8E8; font-weight: 500; letter-spacing: .06em; }
+  /* CSS uppercase turns the micro sign into a capital M, so a micrometre reads as
+     a millimetre and the figure is out by a thousand. The unit opts out. */
+  .unit { text-transform: none; }
 
   @media (max-width: 620px) {
     /* figure.hero is a centring flex box on desktop. Left as flex here, the now
@@ -420,7 +423,7 @@
       <p class="lede">The same measured geometry, a different piece of brain. These are
       proofread neurons from the MICrONS volume, coloured by how deep they sit.</p>
       <div class="rule"></div>
-      <p class="meta"><span><b>38</b> cells</span><span><b>481</b> &micro;m of cortex</span><span><b>34</b> located somata</span></p>
+      <p class="meta"><span><b>38</b> cells</span><span><b>481</b> <span class="unit">&micro;m</span> of cortex</span><span><b>34</b> located somata</span></p>
     </div>
   </div>
 </figure>
@@ -436,13 +439,29 @@
   layers in. They appear because that is where the cell bodies are.</p>
 
   <figure data-hud="429 to 910 &micro;m deep">
-    <img src="images/28_cortex.jpg" alt="MICrONS cortical neurons coloured continuously by depth below the pia">
+    <div class="holoframe"><canvas class="trace"></canvas><img src="images/28_cortex.jpg" alt="MICrONS cortical neurons coloured continuously by depth below the pia"></div>
     <figcaption>The bright points are <b>real somata</b>, not estimates. Cell body
     positions come from the CAVE nucleus table rather than from the meshes, because a
     mesh centroid is noise inside a soma and the true coordinates are on record. The
     34 located cell bodies span <b>429 to 910 &micro;m</b> below the pia with a
     median of <b>630</b>, which is layer 2/3 through layer 6.</figcaption>
   </figure>
+
+  <div class="holo">
+    <p class="k">the ramp spans</p>
+    <p class="v">310 &ndash; 1083 <span class="unit">&micro;m</span></p>
+    <p class="d">below the pia. Gold at the top of that range, deep blue at the
+    bottom, violet through the middle. Every point on every arbor is coloured by
+    its own depth, so one neuron carries the whole ramp along its length.</p>
+  </div>
+
+  <div class="holo">
+    <p class="k">located cell bodies</p>
+    <p class="v">34 <span class="unit">of</span> 38</p>
+    <p class="d">span <b>429</b> to <b>910</b> <span class="unit">&micro;m</span>, median
+    <b>630</b>, which is layer 2/3 through layer 6. Four cells have no nucleus in the
+    table and carry no marker.</p>
+  </div>
 
   <div class="note">This uses the same three colour stops as the CA3 convergence
   gradient, reversed. There the ramp encoded a measured quantity, how many mossy
@@ -455,9 +474,9 @@
   from one viewpoint. The only way to answer that is to move the camera.</p>
 
   <figure>
-    <video controls playsinline muted loop preload="metadata" poster="images/30_orbit.jpg">
+    <div class="holoframe"><canvas class="trace"></canvas><video controls playsinline muted loop preload="metadata" poster="images/30_orbit.jpg">
       <source src="video/microns_orbit.mp4" type="video/mp4">
-    </video>
+    </video></div>
     <figcaption>Ten seconds. The camera swings 72 degrees around the column and
     descends at the same time, so the apical tufts pass overhead before the deep
     cells arrive. Colour is still each point's own depth below the pia, so a single
