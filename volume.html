@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The block, in 3D &middot; CA3 renderings</title>
+<meta property="og:type" content="website">
+<meta property="og:title" content="The block, in 3D">
+<meta property="og:description" content="The reconstructed tissue block, its real EM cross section and one pyramidal cell at true relative scale. Drag to turn it.">
+<meta property="og:image" content="https://amyleesterling.github.io/ca3/images/21_volume.png">
+<meta property="og:url" content="https://amyleesterling.github.io/ca3/volume.html">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="The block, in 3D">
+<meta name="twitter:description" content="The reconstructed tissue block, its real EM cross section and one pyramidal cell at true relative scale. Drag to turn it.">
+<meta name="twitter:image" content="https://amyleesterling.github.io/ca3/images/21_volume.png">
+<meta name="description" content="The reconstructed tissue block, its real EM cross section and one pyramidal cell at true relative scale. Drag to turn it.">
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<style>
+  :root { --ink:#EFF2F7; --dim:#9AA2B1; --faint:#666E7C; --ground:#07080B;
+          --panel:#0F1218; --line:#1D222B; --accent:#3E96F0; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--ground); color:var(--ink);
+         font:400 17px/1.7 ui-sans-serif,-apple-system,"Segoe UI",Roboto,sans-serif;
+         -webkit-text-size-adjust:100%; }
+  .wrap { max-width:860px; margin:0 auto; padding:clamp(20px,5vw,44px) clamp(16px,5vw,30px) 80px; }
+  h1 { margin:0 0 6px; font-size:clamp(24px,6vw,34px); font-weight:500; letter-spacing:-.015em; }
+  .lede { margin:0 0 20px; color:var(--dim); font-size:16px; }
+  p { margin:0 0 14px; color:#C4CCD8; }
+  a { color:var(--accent); text-decoration:none; }
+  a:hover { text-decoration:underline; }
+
+  /* the stage. Fixed aspect so the layout does not jump while the model loads. */
+  #stage { position:relative; width:100%; aspect-ratio:16/10; background:#04060B;
+           border:1px solid var(--line); border-radius:4px; overflow:hidden;
+           touch-action:none; cursor:grab; }
+  #stage:active { cursor:grabbing; }
+  #stage canvas { display:block; width:100%; height:100%; }
+
+  /* readouts, the same idiom as the rest of the site */
+  .tag { position:absolute; z-index:2; pointer-events:none;
+         font-size:10px; letter-spacing:.19em; text-transform:uppercase;
+         color:rgba(150,190,236,.92); }
+  .tag.tl { top:12px; left:14px; }
+  .tag.tr { top:12px; right:14px; text-align:right; }
+  .unit { text-transform:none; }
+  #hint { position:absolute; z-index:2; left:50%; bottom:14px; transform:translateX(-50%);
+          font-size:12px; letter-spacing:.12em; text-transform:uppercase;
+          color:rgba(150,190,236,.72); pointer-events:none;
+          transition:opacity .5s ease; }
+  #hint.gone { opacity:0; }
+  #load { position:absolute; inset:0; display:grid; place-items:center; z-index:3;
+          color:var(--dim); font-size:14px; background:#04060B; transition:opacity .4s ease; }
+  #load.gone { opacity:0; pointer-events:none; }
+  .ctl { margin:10px 0 0; display:flex; flex-wrap:wrap; gap:8px; }
+  .ctl button {
+    font:inherit; font-size:12px; letter-spacing:.1em; text-transform:uppercase;
+    color:var(--ink); background:rgba(16,28,46,.85); cursor:pointer;
+    border:1px solid rgba(112,190,255,.28); border-radius:3px; padding:7px 13px;
+    transition:border-color .25s ease, background .25s ease;
+  }
+  .ctl button:hover, .ctl button:focus-visible {
+    border-color:rgba(150,212,255,.7); background:rgba(22,40,66,.9);
+  }
+  .note { margin:20px 0 0; padding:14px 16px; background:var(--panel);
+          border-radius:8px; color:var(--dim); font-size:14.5px; line-height:1.62; }
+  footer { margin-top:56px; padding-top:20px; border-top:1px solid var(--line);
+           color:var(--faint); font-size:14px; }
+  footer .credit { margin:0 0 8px; color:#C4CCD8; font-size:15px; }
+  @media (prefers-reduced-motion: reduce) { #hint, #load { transition:none; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>The block, in 3D</h1>
+  <p class="lede">The same diagram as the still, but you can turn it. Drag to orbit,
+  scroll or pinch to zoom.</p>
+
+  <div id="stage">
+    <p class="tag tl">1 &times; 1 &times; 0.1 <span class="unit">mm</span> &middot; reconstructed block</p>
+    <p class="tag tr">one pyramidal cell<br>337 &times; 266 &times; 92 <span class="unit">&micro;m</span></p>
+    <p id="hint">drag to turn</p>
+    <div id="load">loading the cell, 2.2 MB</div>
+  </div>
+
+  <div class="ctl">
+    <button type="button" id="btn-top">Look down</button>
+    <button type="button" id="btn-edge">Edge on</button>
+    <button type="button" id="btn-reset">Reset</button>
+    <button type="button" id="btn-spin">Pause spin</button>
+  </div>
+
+  <div class="note">Everything here is placed by measurement. The wireframe is the
+  imaged block at 1 &times; 1 &times; 0.1 <span class="unit">mm</span>. The grey plane is a
+  real EM cross section pulled from the imagery layer at 288 <span class="unit">nm</span>
+  per voxel, sitting at mid depth. The cell is one reconstructed pyramidal neuron at true
+  relative scale, and it sits where it actually sits: <b>221</b> and <b>219</b>
+  <span class="unit">&micro;m</span> from the block centre, almost exactly mid slab in
+  depth. Turn it edge on and you can see that a 92 <span class="unit">&micro;m</span> tall
+  cell nearly fills the 100 <span class="unit">&micro;m</span> thickness.</div>
+
+  <p style="margin-top:22px"><a href="./">Back to the renderings</a> &middot;
+  <a href="viewer.html">The action potential, interactive</a> &middot;
+  <a href="cortex.html">Cortex renderings</a></p>
+
+  <footer>
+    <p class="credit">Created by Amy Sterling
+      <a href="https://x.com/amyneurons" rel="me noopener">@amyneurons</a></p>
+    Meshes via <a href="https://caveclient.readthedocs.io/">CAVE</a>, EM imagery from the
+    same volume, rendered with three.js.
+  </footer>
+
+</div>
+
+<script type="importmap">
+{ "imports": { "three": "./web/vendor/three.module.min.js",
+               "three/addons/": "./web/vendor/" } }
+</script>
+<script type="module">
+import * as THREE from "three";
+import { OrbitControls } from "./web/vendor/controls/OrbitControls.js";
+import { GLTFLoader } from "./web/vendor/loaders/GLTFLoader.js";
+
+// Units are MICROMETRES throughout, the same convention the renders use, so every
+// number in the copy above can be checked against what is on screen.
+const BOX = { x: 1000, y: 1000, z: 100 };
+// where the cell sits relative to the block centre, measured off the mesh with
+// percentile bounds rather than min/max so a stray vertex cannot move it
+const CELL_OFFSET = new THREE.Vector3(221.2, 218.9, 0.5);
+
+const stage = document.getElementById("stage");
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x04060b);
+
+const camera = new THREE.PerspectiveCamera(38, 16 / 10, 1, 20000);
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+stage.appendChild(renderer.domElement);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.06;
+controls.minDistance = 220;
+controls.maxDistance = 5200;
+
+// Data z is the thin 100 um axis. three.js is Y up, so the whole assembly is turned
+// a quarter turn about X: data z becomes world Y and the slab lies flat, which is
+// how the still reads it. Everything is added to this group, never to the scene, so
+// the block, the plate and the cell can never disagree about which way is up.
+const root = new THREE.Group();
+root.rotation.x = -Math.PI / 2;
+scene.add(root);
+
+// ---- the block, edges only ----------------------------------------------------
+const box = new THREE.BoxGeometry(BOX.x, BOX.y, BOX.z);
+const edges = new THREE.LineSegments(
+  new THREE.EdgesGeometry(box),
+  new THREE.LineBasicMaterial({ color: 0x5fd0ff, transparent: true, opacity: 0.85 })
+);
+root.add(edges);
+
+// ---- the EM cross section, at mid depth ---------------------------------------
+new THREE.TextureLoader().load("./web/em_plane.jpg", (tex) => {
+  tex.colorSpace = THREE.SRGBColorSpace;
+  tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
+  const plate = new THREE.Mesh(
+    new THREE.PlaneGeometry(BOX.x, BOX.y),
+    new THREE.MeshBasicMaterial({ map: tex, transparent: true, opacity: 0.94,
+                                  side: THREE.DoubleSide })
+  );
+  root.add(plate);              // already in the XY plane, which is the slab plane
+});
+
+// ---- lights, for the cell -------------------------------------------------------
+scene.add(new THREE.HemisphereLight(0x9fc6ff, 0x0a0e18, 1.15));
+const key = new THREE.DirectionalLight(0xffffff, 1.5);
+key.position.set(0.5, 1, 0.7);
+scene.add(key);
+
+// ---- the cell -------------------------------------------------------------------
+let spin = true;
+new GLTFLoader().load("./web/cell.glb", (gltf) => {
+  const cell = gltf.scene;
+  // The GLB is in micrometres on the data axes, but it is NOT centred on its own
+  // centroid: measured, its bounding box centre sits about (7.6, 3.2, -10.0) from
+  // the file origin. Trusting it to be centred put the cell 6 um through the floor
+  // of the block. So measure the box that actually loaded and move it so that box
+  // centre lands on the offset, which is self correcting if the export ever changes.
+  const bb = new THREE.Box3().setFromObject(cell);
+  const mid = bb.getCenter(new THREE.Vector3());
+  cell.position.copy(CELL_OFFSET).sub(mid);
+  cell.traverse((o) => {
+    if (!o.isMesh) return;
+    o.material = new THREE.MeshStandardMaterial({
+      color: 0x2e8be0, roughness: 0.62, metalness: 0.0,
+      emissive: 0x0d3b6b, emissiveIntensity: 0.5,
+    });
+  });
+  root.add(cell);
+  document.getElementById("load").classList.add("gone");
+}, undefined, () => {
+  document.getElementById("load").textContent = "could not load the cell mesh";
+});
+
+// ---- views -----------------------------------------------------------------------
+const TARGET = new THREE.Vector3(0, 0, 0);
+function view(x, y, z) {
+  camera.position.set(x, y, z);
+  controls.target.copy(TARGET);
+  controls.update();
+}
+const HOME = [900, 620, 900];
+view(...HOME);
+
+document.getElementById("btn-top").onclick   = () => { spin = false; view(0, 1500, 1); mark(); };
+document.getElementById("btn-edge").onclick  = () => { spin = false; view(1500, 40, 0); mark(); };
+document.getElementById("btn-reset").onclick = () => { view(...HOME); mark(); };
+const spinBtn = document.getElementById("btn-spin");
+spinBtn.onclick = () => {
+  spin = !spin;
+  spinBtn.textContent = spin ? "Pause spin" : "Resume spin";
+};
+function mark() { spinBtn.textContent = spin ? "Pause spin" : "Resume spin"; }
+
+// the hint retires as soon as it has been obeyed
+let touched = false;
+["pointerdown", "wheel", "touchstart"].forEach((e) =>
+  stage.addEventListener(e, () => {
+    spin = false; mark();
+    if (!touched) { touched = true; document.getElementById("hint").classList.add("gone"); }
+  }, { passive: true }));
+
+function size() {
+  const r = stage.getBoundingClientRect();
+  camera.aspect = r.width / r.height;
+  camera.updateProjectionMatrix();
+  renderer.setSize(r.width, r.height, false);
+}
+addEventListener("resize", size);
+size();
+
+const slow = matchMedia("(prefers-reduced-motion: reduce)").matches;
+if (slow) spin = false;
+
+// A handle for debugging. requestAnimationFrame never fires in a hidden tab, so
+// without this there is no way to prove the scene built correctly except by eye.
+window.__volume = { THREE, scene, camera, renderer, root, controls,
+                    draw: () => renderer.render(scene, camera) };
+
+renderer.setAnimationLoop(() => {
+  if (spin) root.rotation.z += 0.0016;   // about the slab's own normal, so it stays flat
+  controls.update();
+  renderer.render(scene, camera);
+});
+</script>
+</body>
+</html>
