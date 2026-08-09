@@ -90,6 +90,7 @@
     <button type="button" id="btn-edge">Edge on</button>
     <button type="button" id="btn-reset">Reset</button>
     <button type="button" id="btn-spin">Pause spin</button>
+    <button type="button" id="btn-save">Download</button>
   </div>
 
   <div class="note">Everything here is placed by measurement. The wireframe is the
@@ -224,6 +225,33 @@ spinBtn.onclick = () => {
   spinBtn.textContent = spin ? "Pause spin" : "Resume spin";
 };
 function mark() { spinBtn.textContent = spin ? "Pause spin" : "Resume spin"; }
+
+// ---- download -------------------------------------------------------------------
+// The drawing buffer is not preserved between frames, so the grab has to happen in
+// the same tick as a render. The copy gets a near invisible "Amy Sterling" in the
+// corner; the screen never shows it.
+document.getElementById("btn-save").onclick = () => {
+  renderer.render(scene, camera);
+  const src = renderer.domElement;
+  const out = document.createElement("canvas");
+  out.width = src.width;
+  out.height = src.height;
+  const g = out.getContext("2d");
+  g.drawImage(src, 0, 0);
+  const px = Math.max(11, Math.round(out.width / 80));
+  g.font = `${px}px ui-sans-serif, -apple-system, "Segoe UI", Roboto, sans-serif`;
+  g.textAlign = "right";
+  g.textBaseline = "bottom";
+  g.fillStyle = "rgba(239,242,247,0.05)";
+  g.fillText("Amy Sterling", out.width - px, out.height - Math.round(px * 0.7));
+  out.toBlob((blob) => {
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "ca3-block-3d.png";
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+  }, "image/png");
+};
 
 // the hint retires as soon as it has been obeyed
 let touched = false;
