@@ -50,8 +50,12 @@
           color:rgba(150,190,236,.72); pointer-events:none;
           transition:opacity .5s ease; }
   #hint.gone { opacity:0; }
+  /* the overlay must not hide the scene: the wireframe and EM plane render in the
+     first frame, only the cell streams in. A solid background here once blanked the
+     whole stage until 2.2 MB arrived, and forever if that fetch failed. */
   #load { position:absolute; inset:0; display:grid; place-items:center; z-index:3;
-          color:var(--dim); font-size:14px; background:#04060B; transition:opacity .4s ease; }
+          color:var(--dim); font-size:14px; background:transparent;
+          pointer-events:none; text-shadow:0 1px 6px #04060B; transition:opacity .4s ease; }
   #load.gone { opacity:0; pointer-events:none; }
   .ctl { margin:10px 0 0; display:flex; flex-wrap:wrap; gap:8px; }
   .ctl button {

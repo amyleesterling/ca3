@@ -292,6 +292,15 @@
     border: 0; background: #000;
   }
   figcaption { margin-top: 8px; color: var(--dim); font-size: 14px; }
+  /* the save link under each clip. A phone's inline player has no save option,
+     so this is the only route to a copy on mobile; keep it visible, not hover-only */
+  .vdl { display: inline-block; margin: 8px 0 0; padding: 6px 12px;
+         font-size: 11px; letter-spacing: .14em; text-transform: uppercase;
+         color: var(--dim); text-decoration: none;
+         border: 1px solid var(--line); border-radius: 3px;
+         transition: color .25s ease, border-color .25s ease; }
+  .vdl:hover, .vdl:focus-visible { color: var(--ink);
+         border-color: rgba(150,212,255,.7); text-decoration: none; }
   table { width: 100%; border-collapse: collapse; margin: 14px 0 0; font-size: 15px; }
   th { text-align: left; font-weight: 500; color: var(--faint); font-size: 12px;
         letter-spacing: .08em; text-transform: uppercase; padding: 0 0 8px; }
@@ -1140,6 +1149,31 @@
     if (wrap) wrap.classList.add("is-wide");
     v.load();
   }
+})();
+</script>
+<script>
+(function () {
+  // Every clip gets a plain link to its file, because a phone's inline player
+  // has no save option. The download attribute hands the tap to the browser's
+  // download manager rather than the player, and the size is read off the
+  // served file with a HEAD request rather than typed in, so it cannot drift
+  // when a clip is re-rendered. Runs after the widescreen swap on purpose:
+  // the link should fetch the same cut you are watching.
+  document.querySelectorAll("figure video").forEach(function (v) {
+    var s = v.querySelector("source[src$='.mp4']");
+    var fig = v.closest("figure");
+    if (!s || !fig || fig.querySelector(".vdl")) return;
+    var a = document.createElement("a");
+    a.className = "vdl";
+    a.href = s.getAttribute("src");
+    a.setAttribute("download", "");
+    a.textContent = "↓ Download video";
+    fig.appendChild(a);
+    fetch(a.href, { method: "HEAD" }).then(function (r) {
+      var n = r.ok && +r.headers.get("Content-Length");
+      if (n) a.textContent += " · " + (n / 1048576).toFixed(1) + " MB";
+    }).catch(function () {});
+  });
 })();
 </script>
 </body>
