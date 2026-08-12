@@ -4,10 +4,12 @@
 
 **Renderings:** https://amyleesterling.github.io/ca3/
 
-**Preprint:** [Connectomic reconstruction from hippocampal CA3 reveals spatially graded mossy fiber inputs and selective feedforward inhibition to pyramidal cells](https://www.biorxiv.org/content/10.1101/2025.07.09.663979v1)
+**Paper:** [Hippocampal CA3 connectomics reveals a gradient of mossy fiber inputs and selective feedforward inhibition onto pyramidal cells](https://doi.org/10.1038/s41593-026-02388-9)
 
-Zheng, Park, Hammerschmith, Lu, Yu, Sorek, Silverman, Jordan, Sterling, Silversmith, Collman, Seung, Tank. bioRxiv, 15 July 2025.
-doi:[10.1101/2025.07.09.663979](https://doi.org/10.1101/2025.07.09.663979) · [PubMed 40791329](https://pubmed.ncbi.nlm.nih.gov/40791329/)
+Zheng, Park, Hammerschmith, Lu, Yu, Sorek, Silverman, Jordan, Sterling, Silversmith, Schlegel, Jefferis, Collman, Seung, Tank. **Nature Neuroscience**, 5 August 2026.
+doi:[10.1038/s41593-026-02388-9](https://doi.org/10.1038/s41593-026-02388-9) · [PubMed 42557444](https://pubmed.ncbi.nlm.nih.gov/42557444/)
+
+The open access preprint remains on [bioRxiv](https://www.biorxiv.org/content/10.1101/2025.07.09.663979v1), doi:[10.1101/2025.07.09.663979](https://doi.org/10.1101/2025.07.09.663979).
 
 ---
 
