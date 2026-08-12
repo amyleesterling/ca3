@@ -292,15 +292,21 @@
     border: 0; background: #000;
   }
   figcaption { margin-top: 8px; color: var(--dim); font-size: 14px; }
-  /* the save link under each clip. A phone's inline player has no save option,
-     so this is the only route to a copy on mobile; keep it visible, not hover-only */
-  .vdl { display: inline-block; margin: 8px 0 0; padding: 6px 12px;
-         font-size: 11px; letter-spacing: .14em; text-transform: uppercase;
-         color: var(--dim); text-decoration: none;
-         border: 1px solid var(--line); border-radius: 3px;
-         transition: color .25s ease, border-color .25s ease; }
-  .vdl:hover, .vdl:focus-visible { color: var(--ink);
-         border-color: rgba(150,212,255,.7); text-decoration: none; }
+  /* Saving a clip is a long press on the clip itself, so nothing sits under the
+     figure. This is all the chrome that needs: a word while the file is pulled,
+     and a tap target for when the gesture runs out before the file arrives. */
+  video { -webkit-touch-callout: none; }
+  .vsave {
+    position: absolute; left: 50%; top: 50%; z-index: 6;
+    transform: translate(-50%,-50%);
+    font: inherit; font-size: 11px; letter-spacing: .14em; text-transform: uppercase;
+    color: var(--ink); background: rgba(8,14,24,.88);
+    border: 1px solid rgba(112,190,255,.34); border-radius: 3px; padding: 8px 14px;
+    opacity: 0; pointer-events: none; transition: opacity .2s ease;
+  }
+  .vsave.on { opacity: 1; }
+  .vsave.tap { pointer-events: auto; cursor: pointer;
+               border-color: rgba(150,212,255,.75); }
   table { width: 100%; border-collapse: collapse; margin: 14px 0 0; font-size: 15px; }
   th { text-align: left; font-weight: 500; color: var(--faint); font-size: 12px;
         letter-spacing: .08em; text-transform: uppercase; padding: 0 0 8px; }
@@ -889,7 +895,8 @@
       <a href="https://x.com/amyneurons" rel="me noopener">@amyneurons</a></p>
     Meshes pulled from the segmentation through
     <a href="https://caveclient.readthedocs.io/">CAVE</a> and rendered in Blender.
-    <a href="cortex.html">Cortex renderings, MICrONS</a> &middot;
+    To keep a clip, long press it on a phone or right click it on a desktop.
+    <br><a href="cortex.html">Cortex renderings, MICrONS</a> &middot;
     <a href="https://pyr.ai">Explore the dataset on Pyr</a> &middot;
     <a href="https://github.com/amyleesterling/ca3">Source on GitHub</a>.
   </footer>
@@ -1153,26 +1160,131 @@
 </script>
 <script>
 (function () {
-  // Every clip gets a plain link to its file, because a phone's inline player
-  // has no save option. The download attribute hands the tap to the browser's
-  // download manager rather than the player, and the size is read off the
-  // served file with a HEAD request rather than typed in, so it cannot drift
-  // when a clip is re-rendered. Runs after the widescreen swap on purpose:
-  // the link should fetch the same cut you are watching.
+  // Saving a clip is a long press on the clip itself. No button under the figure:
+  // a phone already treats a long press as "I want this thing", and the captions
+  // are carrying enough furniture.
+  //
+  // Which route the save takes is the part that matters. A download lands in
+  // Files and can never land in Photos, because a page has no way to write to
+  // the photo library. The share sheet can: hand it a real File and iOS offers
+  // Save Video, which is where people go looking afterwards. That call has to
+  // run inside the touchend gesture or the browser refuses it, so the fetch is
+  // started during the press and the file is usually waiting by the time the
+  // finger lifts. When it is not, the press ends on a one tap prompt, which
+  // buys a fresh gesture instead of failing silently.
+  var HOLD = 450, SLOP = 12, LEAD = 240;
+
   document.querySelectorAll("figure video").forEach(function (v) {
-    var s = v.querySelector("source[src$='.mp4']");
-    var fig = v.closest("figure");
-    if (!s || !fig || fig.querySelector(".vdl")) return;
-    var a = document.createElement("a");
-    a.className = "vdl";
-    a.href = s.getAttribute("src");
-    a.setAttribute("download", "");
-    a.textContent = "↓ Download video";
-    fig.appendChild(a);
-    fetch(a.href, { method: "HEAD" }).then(function (r) {
-      var n = r.ok && +r.headers.get("Content-Length");
-      if (n) a.textContent += " · " + (n / 1048576).toFixed(1) + " MB";
-    }).catch(function () {});
+    var frame = v.closest(".holoframe") || v.closest("figure");
+    if (!frame) return;
+    if (getComputedStyle(frame).position === "static") frame.style.position = "relative";
+    var press = null;
+
+    function chip() {
+      var b = frame.querySelector(".vsave");
+      if (!b) {
+        b = document.createElement("button");
+        b.type = "button";
+        b.className = "vsave";
+        frame.appendChild(b);
+      }
+      return b;
+    }
+    function say(text, tappable, ms) {
+      var b = chip();
+      b.textContent = text;
+      b.classList.toggle("tap", !!tappable);
+      b.classList.add("on");
+      clearTimeout(b.timer);
+      if (ms) b.timer = setTimeout(function () { b.classList.remove("on", "tap"); }, ms);
+      return b;
+    }
+    function quiet() {
+      var b = frame.querySelector(".vsave");
+      if (b) { clearTimeout(b.timer); b.classList.remove("on", "tap"); }
+    }
+
+    // currentSrc, so the widescreen swap is honoured and you save the cut on screen
+    function href() { return v.currentSrc || (v.querySelector("source") || {}).src || ""; }
+    function name() { return href().split("?")[0].split("/").pop() || "clip.mp4"; }
+
+    function pull(p) {
+      if (!p.job) {
+        p.job = fetch(href(), { signal: p.stop.signal })
+          .then(function (r) { if (!r.ok) throw new Error(r.status); return r.blob(); })
+          .then(function (blob) { p.blob = blob; return blob; });
+        p.job.catch(function () {});
+      }
+      return p.job;
+    }
+
+    function offer(blob) {
+      say("tap to save", true, 0).onclick = function () { give(blob); };
+    }
+    function give(blob) {
+      var file = null;
+      try { file = new File([blob], name(), { type: blob.type || "video/mp4" }); }
+      catch (e) {}
+      if (file && navigator.canShare && navigator.canShare({ files: [file] })) {
+        quiet();
+        var sent = navigator.share({ files: [file] });
+        // a spent gesture is the one failure worth a second chance; a cancelled
+        // share sheet is not, so only that error re-offers
+        if (sent && sent.catch) sent.catch(function (err) {
+          if (err && err.name === "NotAllowedError") offer(blob);
+        });
+        return;
+      }
+      var a = document.createElement("a");     // no share sheet, so Files it is
+      a.href = URL.createObjectURL(blob);
+      a.download = name();
+      a.click();
+      setTimeout(function () { URL.revokeObjectURL(a.href); }, 4000);
+      quiet();
+    }
+
+    frame.addEventListener("touchstart", function (e) {
+      if (e.touches.length !== 1) return;
+      var t = e.touches[0], p;
+      press = p = { x: t.clientX, y: t.clientY, stop: new AbortController(),
+                    blob: null, job: null, held: false };
+      // a tap must never start a 12 MB fetch, so the pull waits out the tap window
+      p.lead = setTimeout(function () { pull(p); }, LEAD);
+      p.mark = setTimeout(function () { p.held = true; say("saving…", false, 0); }, HOLD);
+    }, { passive: true });
+
+    frame.addEventListener("touchmove", function (e) {
+      if (!press) return;
+      var t = e.touches[0];
+      if (Math.abs(t.clientX - press.x) > SLOP ||
+          Math.abs(t.clientY - press.y) > SLOP) drop();
+    }, { passive: true });
+
+    frame.addEventListener("touchcancel", drop, { passive: true });
+
+    frame.addEventListener("touchend", function (e) {
+      if (!press) return;
+      if (!press.held) { drop(); return; }
+      e.preventDefault();                  // that press was a save, not a play
+      var p = press;
+      press = null;
+      clearTimeout(p.lead);
+      clearTimeout(p.mark);
+      if (p.blob) { give(p.blob); return; }   // inside the gesture, the good case
+      say("preparing…", false, 0);
+      pull(p).then(offer).catch(function () {
+        say("could not fetch the clip", false, 2600);
+      });
+    }, { passive: false });
+
+    function drop() {
+      if (!press) return;
+      clearTimeout(press.lead);
+      clearTimeout(press.mark);
+      try { press.stop.abort(); } catch (e) {}
+      press = null;
+      quiet();
+    }
   });
 })();
 </script>
