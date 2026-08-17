@@ -240,6 +240,11 @@
   .vsave.on { opacity: 1; }
   .vsave.tap { pointer-events: auto; cursor: pointer;
                border-color: rgba(150,212,255,.75); }
+  /* the swarm canvas sits under the chip (z-index 6) so the particles stream
+     toward it and pass behind, never over the text */
+  .swarm { position: absolute; inset: 0; z-index: 5; pointer-events: none;
+           opacity: 0; transition: opacity .3s ease; }
+  .swarm.on { opacity: 1; }
   table { width: 100%; border-collapse: collapse; margin: 14px 0 0; font-size: 15px; }
   th { text-align: left; font-weight: 500; color: var(--faint); font-size: 12px;
         letter-spacing: .08em; text-transform: uppercase; padding: 0 0 8px; }
@@ -792,11 +797,110 @@
   // buys a fresh gesture instead of failing silently.
   var HOLD = 450, SLOP = 12, LEAD = 240;
 
+  // ---- the swarm ------------------------------------------------------------
+  // While the save chip is up, particles gather from across the frame and stream
+  // into it, so the thing you are waiting on is also the thing everything points
+  // at. They flock rather than fly straight: each one steers toward its
+  // neighbours' heading, pushes off any that crowd it, and carries a little curl
+  // so the approach arcs. Motion only, no layout, and it yields entirely to
+  // prefers-reduced-motion.
+  function swarmFor(frame) {
+    var still = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    var cv, ctx, raf = 0, dpr = 1, W = 0, H = 0, tx = 0, ty = 0, parts = [];
+    var TINTS = ["150,212,255", "112,190,255", "214,240,255"];
+
+    function measure() {
+      var r = frame.getBoundingClientRect();
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      W = Math.max(1, Math.round(r.width * dpr));
+      H = Math.max(1, Math.round(r.height * dpr));
+      cv.width = W; cv.height = H;
+      var chip = frame.querySelector(".vsave");
+      if (chip) {
+        var c = chip.getBoundingClientRect();
+        tx = (c.left - r.left + c.width / 2) * dpr;
+        ty = (c.top - r.top + c.height / 2) * dpr;
+      } else { tx = W / 2; ty = H / 2; }
+    }
+    function born() {
+      // enter from just outside a random edge, so they arrive rather than appear
+      var side = Math.random() * 4 | 0, m = 24 * dpr, x, y;
+      if (side === 0) { x = Math.random() * W; y = -m; }
+      else if (side === 1) { x = W + m; y = Math.random() * H; }
+      else if (side === 2) { x = Math.random() * W; y = H + m; }
+      else { x = -m; y = Math.random() * H; }
+      return { x: x, y: y, vx: 0, vy: 0,
+               pull: (0.16 + Math.random() * 0.22) * dpr,
+               curl: (Math.random() - 0.5) * 0.5 * dpr,
+               r: (0.9 + Math.random() * 1.5) * dpr,
+               tint: TINTS[Math.random() * TINTS.length | 0],
+               life: 200 + Math.random() * 240 };
+    }
+    function step() {
+      ctx.clearRect(0, 0, W, H);
+      var N = Math.min(70, Math.round(W / (9 * dpr)));
+      while (parts.length < N) parts.push(born());
+      for (var i = 0; i < parts.length; i++) {
+        var p = parts[i], ax = 0, ay = 0, n = 0, sx = 0, sy = 0;
+        // every other particle is a big enough sample to read as a flock
+        for (var j = i % 2; j < parts.length; j += 2) {
+          if (j === i) continue;
+          var q = parts[j], dx = q.x - p.x, dy = q.y - p.y, d2 = dx * dx + dy * dy;
+          if (d2 < 3400 * dpr * dpr) {
+            ax += q.vx; ay += q.vy; n++;
+            if (d2 < 460 * dpr * dpr && d2 > 0.5) { sx -= dx / d2; sy -= dy / d2; }
+          }
+        }
+        if (n) { p.vx += (ax / n - p.vx) * 0.05; p.vy += (ay / n - p.vy) * 0.05; }
+        p.vx += sx * 30 * dpr; p.vy += sy * 30 * dpr;
+        var gx = tx - p.x, gy = ty - p.y, gd = Math.sqrt(gx * gx + gy * gy) || 1;
+        p.vx += (gx / gd) * p.pull - (gy / gd) * p.curl;
+        p.vy += (gy / gd) * p.pull + (gx / gd) * p.curl;
+        p.vx *= 0.965; p.vy *= 0.965;
+        p.x += p.vx; p.y += p.vy;
+        if (--p.life <= 0 || gd < 15 * dpr) { parts[i] = born(); continue; }
+        // brighter the closer they get, and streaked along their own heading
+        var near = Math.max(0, Math.min(1, 1 - gd / (Math.max(W, H) * 0.55)));
+        var a = (0.18 + near * 0.62);
+        var sp = Math.sqrt(p.vx * p.vx + p.vy * p.vy) || 1;
+        ctx.strokeStyle = "rgba(" + p.tint + "," + a.toFixed(3) + ")";
+        ctx.lineWidth = p.r;
+        ctx.lineCap = "round";
+        ctx.beginPath();
+        ctx.moveTo(p.x, p.y);
+        ctx.lineTo(p.x - (p.vx / sp) * p.r * 3.2, p.y - (p.vy / sp) * p.r * 3.2);
+        ctx.stroke();
+      }
+      raf = requestAnimationFrame(step);
+    }
+    return {
+      start: function () {
+        if (still || raf) return;
+        cv = frame.querySelector("canvas.swarm");
+        if (!cv) {
+          cv = document.createElement("canvas");
+          cv.className = "swarm";
+          frame.appendChild(cv);
+        }
+        ctx = cv.getContext("2d");
+        measure();
+        parts.length = 0;
+        cv.classList.add("on");
+        raf = requestAnimationFrame(step);
+      },
+      stop: function () {
+        if (raf) { cancelAnimationFrame(raf); raf = 0; }
+        if (cv) { cv.classList.remove("on"); ctx && ctx.clearRect(0, 0, W, H); }
+      },
+      retarget: measure
+    };
+  }
+
   document.querySelectorAll("figure video").forEach(function (v) {
     var frame = v.closest(".holoframe") || v.closest("figure");
     if (!frame) return;
     if (getComputedStyle(frame).position === "static") frame.style.position = "relative";
-    var press = null;
+    var press = null, swarm = swarmFor(frame);
 
     function chip() {
       var b = frame.querySelector(".vsave");
@@ -813,13 +917,18 @@
       b.textContent = text;
       b.classList.toggle("tap", !!tappable);
       b.classList.add("on");
+      swarm.start();
+      swarm.retarget();
       clearTimeout(b.timer);
-      if (ms) b.timer = setTimeout(function () { b.classList.remove("on", "tap"); }, ms);
+      if (ms) b.timer = setTimeout(function () {
+        b.classList.remove("on", "tap"); swarm.stop();
+      }, ms);
       return b;
     }
     function quiet() {
       var b = frame.querySelector(".vsave");
       if (b) { clearTimeout(b.timer); b.classList.remove("on", "tap"); }
+      swarm.stop();
     }
 
     // currentSrc, so the widescreen swap is honoured and you save the cut on screen
@@ -894,6 +1003,8 @@
         say("could not fetch the clip", false, 2600);
       });
     }, { passive: false });
+
+    addEventListener("resize", function () { swarm.retarget(); }, { passive: true });
 
     function drop() {
       if (!press) return;
