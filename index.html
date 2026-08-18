@@ -24,7 +24,7 @@
   :root {
     --ink: #EFF2F7; --dim: #9AA2B1; --faint: #666E7C;
     --ground: #07080B; --panel: #0F1218; --line: #1D222B;
-    --edge: #4A5568; --accent: #3E96F0;
+    --edge: #4A5568; --accent: #3E96F0; --warn: #E8A93A;
   }
   * { box-sizing: border-box; }
   body {
@@ -322,6 +322,7 @@
     border-left: 3px solid var(--accent); border-radius: 0 8px 8px 0;
     color: var(--dim); font-size: 15px;
   }
+  .caveat { border-left-color: var(--warn); }
   .note b, .cap b { color: var(--ink); font-weight: 500; }
   footer { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--line);
             color: var(--faint); font-size: 14px; }
@@ -609,6 +610,47 @@
     sample thins at the ends and a median over twenty cells deserves less weight
     than one over eighty.</figcaption>
   </figure>
+
+  <h3>Why the variation matters</h3>
+
+  <p>The textbook picture of this connection is a <b>detonator</b>. Each CA3 pyramidal
+  cell is supposed to hear from only a handful of granule cells, but so powerfully that
+  one of them can nearly fire the cell by itself. Few inputs, each enormous, is exactly
+  the arrangement you would design if you wanted two similar experiences to end up
+  recruiting two different sets of CA3 cells &mdash; which is what <b>pattern
+  separation</b> means, and why this synapse is thought to matter for laying down a
+  memory that does not smear into yesterday's.</p>
+
+  <p>That picture assumes every CA3 cell is roughly alike. This gradient says otherwise.
+  How much dentate input a cell receives depends substantially on <b>where it sits</b>
+  along the layer, and the spread is not subtle: the busiest cells here carry more than
+  five times the median of the quietest stretch. A cell's position is part of its job
+  description, so CA3 is less a uniform pool of interchangeable units than the classical
+  model treats it as.</p>
+
+  <p>The most interesting part is the twist, and it cuts against the simple reading.
+  The distal cells that collect the <b>most</b> inputs collect them through
+  <b>smaller</b> terminals holding <b>fewer</b> vesicles. Count and per-contact strength
+  run in opposite directions. So the gradient in the numbers above is not a gradient in
+  raw drive, and reading it as one would overstate it &mdash; a cell with three times
+  the contacts is not being shouted at three times as loudly. It looks more like the
+  same total budget being spent two different ways: a few loud inputs at one end of the
+  layer, many quiet ones at the other.</p>
+
+  <p>The wiring also turns out to be <b>spatial</b>. Cells here share far more mossy
+  fiber inputs than chance allows, but that sharing is explained better by which cells
+  sit near each other than by how many inputs each one has. Neighbours sample the same
+  passing fibers. That is in real tension with pattern separation, which works best when
+  nearby cells hear different things, and it is the kind of constraint you only see once
+  you can trace every fiber rather than sample a few.</p>
+
+  <div class="note caveat">What this cannot tell you. Terminal size and vesicle count
+  are anatomical <b>proxies</b> for synaptic strength, not recordings of it; nobody
+  measured a current here. The gradient is traced across roughly <b>1.1 mm</b> of one
+  block from one animal, which is a slice of the proximodistal axis rather than the
+  whole of it, and one animal cannot tell you what varies between animals. And the
+  sample thins toward both ends, which is why the cell count sits in the readout the
+  whole way along.</div>
 
   <div class="grid">
     <figure>
