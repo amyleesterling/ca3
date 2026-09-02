@@ -3,9 +3,10 @@
 #
 #   sh pyr/mirror.sh /path/to/pyr-homepage-static
 #
-# Copies the site verbatim (pages, images, video, the 3D assets) into
-# <pyr>/gallery/. Every URL in the site is relative, so nothing is rewritten:
-# what runs at amyleesterling.github.io/ca3/ runs unchanged at pyr.ai/gallery/.
+# Copies the site (pages, images, video, the 3D assets) into <pyr>/gallery/,
+# then applies the Seung Lab variant (pyr/seunglab.py) to the front page. Every
+# URL in the site is relative, so nothing else is rewritten. A preview of the
+# variant is built into seunglab/ in this repo: sh pyr/preview.sh
 # Run it again after any change here and commit the result on pyr's main branch,
 # which is the branch that deploys pyr.ai.
 set -eu
@@ -25,6 +26,9 @@ rm -rf "$PYR/gallery"
 mkdir -p "$PYR/gallery"
 cp "$HERE"/*.html "$HERE/favicon.ico" "$PYR/gallery/"
 cp -R "$HERE/images" "$HERE/video" "$HERE/web" "$PYR/gallery/"
+# the Seung Lab version differs from this site in a few deliberate places;
+# seunglab.py holds every one of them
+python3 "$HERE/pyr/seunglab.py" "$PYR/gallery" "$PYR/gallery"
 
 git -C "$PYR" add -A gallery gallery-flywire.html 2>/dev/null || git -C "$PYR" add -A gallery
 echo "staged in $PYR: $(git -C "$PYR" diff --cached --stat | tail -1)"

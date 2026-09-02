@@ -155,6 +155,7 @@
     var TINTS = ["150,212,255", "112,190,255", "214,240,255"];
 
     function measure() {
+      if (!cv) return;   // a resize before the first press has no canvas to size
       var r = frame.getBoundingClientRect();
       dpr = Math.min(window.devicePixelRatio || 1, 2);
       W = Math.max(1, Math.round(r.width * dpr));
