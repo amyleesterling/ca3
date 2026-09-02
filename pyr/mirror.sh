@@ -8,7 +8,8 @@
 # URL in the site is relative, so nothing else is rewritten. A preview of the
 # variant is built into seunglab/ in this repo: sh pyr/preview.sh
 # Run it again after any change here and commit the result on pyr's main branch,
-# which is the branch that deploys pyr.ai.
+# which is the branch that deploys pyr.ai. The GitHub Action in
+# .github/workflows/mirror-pyr.yml does exactly this on every change to main.
 set -eu
 PYR=${1:?usage: sh pyr/mirror.sh /path/to/pyr-homepage-static}
 HERE=$(cd "$(dirname "$0")/.." && pwd)
@@ -30,6 +31,21 @@ cp -R "$HERE/images" "$HERE/video" "$HERE/web" "$PYR/gallery/"
 # seunglab.py holds every one of them
 python3 "$HERE/pyr/seunglab.py" "$PYR/gallery" "$PYR/gallery"
 
-git -C "$PYR" add -A gallery gallery-flywire.html 2>/dev/null || git -C "$PYR" add -A gallery
+# The GALLERY link is commented out in every page's nav on pyr.ai. Uncomment it,
+# exactly that markup and nothing else, so the mirror is reachable. A no-op once
+# it has been done.
+python3 - "$PYR" <<'PY'
+import glob, os, sys
+old = '<!-- <a href="/gallery" class="w3-bar-item w3-button"> GALLERY</a> -->'
+new = '<a href="/gallery" class="w3-bar-item w3-button"> GALLERY</a>'
+n = 0
+for f in glob.glob(os.path.join(sys.argv[1], '*.html')):
+    s = open(f, encoding='utf-8').read()
+    if old in s:
+        open(f, 'w', encoding='utf-8').write(s.replace(old, new)); n += 1
+print(f"nav: GALLERY link uncommented in {n} page(s)")
+PY
+
+git -C "$PYR" add -A
 echo "staged in $PYR: $(git -C "$PYR" diff --cached --stat | tail -1)"
 echo "next: cd $PYR && git commit -m 'Mirror the CA3 renderings site at /gallery' && git push origin main"

@@ -1,0 +1,65 @@
+# Mirror this site to pyr.ai/gallery.
+#
+# Runs on every change to the site on main, and on demand from the Actions tab
+# ("Run workflow"). It needs one secret, PYR_TOKEN: a GitHub token from an
+# account that can push to seung-lab/pyr-homepage-static (Settings > Secrets and
+# variables > Actions in this repo). Without it the job stops with a note rather
+# than failing.
+name: Mirror to pyr.ai
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['*.html', 'favicon.ico', 'images/**', 'video/**', 'web/**', 'pyr/**',
+            '.github/workflows/mirror-pyr.yml']
+
+concurrency:
+  group: mirror-pyr
+  cancel-in-progress: false
+
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check for the pyr.ai token
+        id: token
+        env:
+          T: ${{ secrets.PYR_TOKEN }}
+        run: |
+          if [ -z "$T" ]; then
+            echo "::warning::PYR_TOKEN is not set. Add a token with push access to seung-lab/pyr-homepage-static under Settings > Secrets and variables > Actions, then re-run."
+            echo "**Not mirrored:** the PYR_TOKEN secret is missing." >> "$GITHUB_STEP_SUMMARY"
+            echo "ok=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ok=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Check out this site
+        if: steps.token.outputs.ok == 'true'
+        uses: actions/checkout@v4
+
+      - name: Check out pyr-homepage-static (main deploys pyr.ai)
+        if: steps.token.outputs.ok == 'true'
+        uses: actions/checkout@v4
+        with:
+          repository: seung-lab/pyr-homepage-static
+          ref: main
+          token: ${{ secrets.PYR_TOKEN }}
+          path: pyr-homepage-static
+
+      - name: Mirror, commit, push
+        if: steps.token.outputs.ok == 'true'
+        run: |
+          sh pyr/mirror.sh "$PWD/pyr-homepage-static"
+          cd pyr-homepage-static
+          git config user.name  "ca3 mirror"
+          git config user.email "amyleerobinson@gmail.com"
+          if git diff --cached --quiet; then
+            echo "pyr.ai/gallery already matches this site; nothing to push." | tee -a "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          git commit -q -m "Mirror the CA3 renderings site at /gallery" \
+                        -m "From amyleesterling/ca3@${GITHUB_SHA}"
+          git push origin main
+          echo "Pushed to seung-lab/pyr-homepage-static main: $(git rev-parse --short HEAD). pyr.ai/gallery follows once its deploy runs." | tee -a "$GITHUB_STEP_SUMMARY"
