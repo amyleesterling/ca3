@@ -38,7 +38,15 @@
   .cite {
     margin: 0 0 40px; padding: 16px 18px; background: var(--panel);
     border-radius: 10px; font-size: 14.5px; color: var(--dim); line-height: 1.6;
+    display: flex; gap: 20px; align-items: flex-start;
   }
+  /* the September 2026 cover, as printed; the render on it is the one at the top of this page */
+  .cite .cover { flex: none; width: 128px; display: block; }
+  .cite .cover img { display: block; width: 100%; height: auto; border-radius: 3px;
+    box-shadow: 0 10px 28px rgba(0,0,0,.55), 0 0 0 1px rgba(112,190,255,.18); }
+  .cite .cover:hover img { box-shadow: 0 10px 28px rgba(0,0,0,.55), 0 0 0 1px rgba(150,212,255,.6); }
+  .cite .txt { min-width: 0; }
+  @media (max-width: 560px) { .cite { flex-direction: column; } .cite .cover { width: 104px; } }
   .cite a { color: var(--accent); text-decoration: none; }
   .cite a:hover { text-decoration: underline; }
   .cite .t { color: var(--ink); display: block; margin-bottom: 6px; }
@@ -528,6 +536,11 @@
 
 
 <div class="cite" style="margin-top:6px">
+    <a class="cover" href="https://www.nature.com/neuro/volumes/29/issues/9"
+       title="Nature Neuroscience, September 2026: on the cover"><img
+       src="images/cover_natneuro_2026_09.jpg" width="600" height="793"
+       alt="Nature Neuroscience September 2026 cover: Hippocampal CA3 connectomics"></a>
+    <div class="txt">
     <span class="t"><a href="https://doi.org/10.1038/s41593-026-02388-9">Hippocampal CA3
     connectomics reveals a gradient of mossy fiber inputs and selective feedforward
     inhibition onto pyramidal cells</a></span>
@@ -542,6 +555,7 @@
     <a href="https://www.biorxiv.org/content/10.1101/2025.07.09.663979v1">open access
     preprint</a> is worth keeping to hand. The dataset is shared through
     <a href="https://pyr.ai">Pyr</a>, an online platform for hippocampal connectomics.
+    </div>
   </div>
 
   <div class="stats">

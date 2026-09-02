@@ -1,17 +1,19 @@
-# pyr.ai gallery, staged
+# pyr.ai/gallery is this site
 
-`gallery.html` is a drop-in for the **main** branch of `seung-lab/pyr-homepage-static`
-(the branch that deploys pyr.ai), replacing the existing `/gallery` page. It keeps
-that page's FlyWire sections and adds a CA3 section on top: the Nature Neuroscience
-September 2026 cover, the citation, the live 3D block, and the renders and films
-from this repo, all loaded from `amyleesterling.github.io/ca3` so no media needs
-copying. It also re-enables the GALLERY link in both navs, which was commented out.
+The gallery page on pyr.ai is a verbatim mirror of this repository: the same
+pages, images, films and 3D block, served from `pyr.ai/gallery/`. Nothing is
+adapted, because every URL here is relative.
 
-Preview: https://amyleesterling.github.io/ca3/pyr/gallery.html
+`mirror.sh` does the copy into a checkout of `seung-lab/pyr-homepage-static`
+(its **main** branch deploys pyr.ai):
 
-To ship: copy `gallery.html` over the pyr repo's gallery page, and add the cover
-scan at `assets/natneuro-2026-09-cover.jpg` (until it exists the cover artwork
-stands in). Asset URLs are absolute (`https://pyr.ai/assets/...`) so the file
-renders identically from either host.
+    sh pyr/mirror.sh ../pyr-homepage-static
+    cd ../pyr-homepage-static && git commit -m "Mirror the CA3 renderings site at /gallery" && git push origin main
 
-This folder can be deleted once the page is live on pyr.ai.
+It moves the old FlyWire gallery page aside as `gallery-flywire.html` so the
+directory index wins at `/gallery`, then rsyncs `*.html`, `favicon.ico`,
+`images/`, `video/` and `web/` into `gallery/`. Re-run it after any change here.
+
+Two things it does not do, on purpose: it does not touch pyr's navigation (the
+GALLERY link there is commented out in every page's nav; uncomment it when the
+mirror lands), and it does not copy `.claude/`, `pyr/` or the git history.
