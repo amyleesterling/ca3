@@ -1,29 +1,31 @@
 <!doctype html>
 <html lang="en">
 <head>
+<base href="../">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Cortex &middot; MICrONS renderings</title>
+<title>CA3 renderings</title>
 <meta property="og:type" content="website">
-<meta property="og:title" content="Cortex renderings, MICrONS">
-<meta property="og:description" content="Proofread neurons from the MICrONS mouse visual cortex volume, coloured by their own depth below the pia. Lamination is not drawn on; it appears because that is where the cell bodies are.">
-<meta property="og:image" content="https://amyleesterling.github.io/ca3/images/28_cortex.jpg">
-<meta property="og:url" content="https://amyleesterling.github.io/ca3/cortex.html">
+<meta property="og:title" content="CA3 renderings">
+<meta property="og:description" content="Every image is measured geometry from one block of mouse hippocampus: 1,815 pyramidal cells, 229 inhibitory cells and more than 55,000 mossy fibers, reconstructed and rendered.">
+<meta property="og:image" content="https://amyleesterling.github.io/ca3/og.jpg">
+<meta property="og:url" content="https://amyleesterling.github.io/ca3/">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Cortex renderings, MICrONS">
-<meta name="twitter:description" content="Proofread neurons from the MICrONS mouse visual cortex volume, coloured by their own depth below the pia. Lamination is not drawn on; it appears because that is where the cell bodies are.">
-<meta name="twitter:image" content="https://amyleesterling.github.io/ca3/images/28_cortex.jpg">
-<meta name="description" content="Proofread neurons from the MICrONS mouse visual cortex volume, coloured by their own depth below the pia. Lamination is not drawn on; it appears because that is where the cell bodies are.">
+<meta name="twitter:title" content="CA3 renderings">
+<meta name="twitter:description" content="Every image is measured geometry from one block of mouse hippocampus: 1,815 pyramidal cells, 229 inhibitory cells and more than 55,000 mossy fibers, reconstructed and rendered.">
+<meta name="twitter:image" content="https://amyleesterling.github.io/ca3/og.jpg">
+<meta name="description" content="Every image is measured geometry from one block of mouse hippocampus: 1,815 pyramidal cells, 229 inhibitory cells and more than 55,000 mossy fibers, reconstructed and rendered.">
 <link rel="icon" href="favicon.ico" sizes="any">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="description" content="3D renderings from a connectomic reconstruction of mouse hippocampal CA3.">
 <style>
   :root {
     --ink: #EFF2F7; --dim: #9AA2B1; --faint: #666E7C;
     --ground: #07080B; --panel: #0F1218; --line: #1D222B;
-    --edge: #4A5568; --accent: #3E96F0;
+    --edge: #4A5568; --accent: #3E96F0; --warn: #E8A93A;
   }
   * { box-sizing: border-box; }
   body {
@@ -37,7 +39,16 @@
   .cite {
     margin: 0 0 40px; padding: 16px 18px; background: var(--panel);
     border-radius: 10px; font-size: 14.5px; color: var(--dim); line-height: 1.6;
+    display: flex; gap: 26px; align-items: center;
   }
+  /* the September 2026 cover, as Nature serves it; the picture says it, the text does not */
+  .cite .cover { flex: none; width: 232px; display: block; }
+  .cite .cover img { display: block; width: 100%; height: auto; border-radius: 3px;
+    box-shadow: 0 10px 28px rgba(0,0,0,.55), 0 0 0 1px rgba(112,190,255,.18); }
+  .cite .cover:hover img { box-shadow: 0 10px 28px rgba(0,0,0,.55), 0 0 0 1px rgba(150,212,255,.6); }
+  .cite .txt { min-width: 0; }
+  @media (max-width: 640px) { .cite { flex-direction: column; align-items: stretch; }
+    .cite .cover { width: min(72%, 260px); margin: 4px auto 6px; } }
   .cite a { color: var(--accent); text-decoration: none; }
   .cite a:hover { text-decoration: underline; }
   .cite .t { color: var(--ink); display: block; margin-bottom: 6px; }
@@ -51,17 +62,40 @@
   /* The banner sits outside the text column, so it needs no viewport-unit
      breakout and picks up no scrollbar offset. It is NOT cropped: the whole
      render sits on the page's own black. */
-  /* The black IS the page. The render sits centred in it, whole, and the panel
-     takes only the top slice. A 2.36:1 image is inherently short, so the figure
-     is given height and the image is centred inside it rather than stretched. */
+  /* The black IS the page. The render runs full bleed from the very top of the
+     document and the panel takes only the top slice.
+     The figure deliberately has NO min-height and does NOT centre the image.
+     It used to be a flex box of min(84vh,780px) centring a short banner, which
+     padded black above and below the render: the render then began part way down
+     the page and its lower edge read as a crop rather than as the end of the
+     image. Shrink-wrapping the image gives both for free, so long as the source
+     render is itself uncropped. */
   figure.hero {
     margin: 0 0 10px; position: relative;
-    min-height: min(84vh, 780px);
-    display: flex; align-items: center;
     background: var(--ground);
   }
   figure.hero img {
     border: 0; border-radius: 0; width: 100%; height: auto; display: block;
+  }
+  /* The render must never end in a hard horizontal edge. Its lower half is faded
+     into the page black and the article is lifted up over it, so the descending
+     arbor dissolves behind the citation and the stat tiles rather than being cut
+     off. This only works because the source render clears all four edges: the
+     old 2.36:1 banner ran off the top and bottom of its own JPEG. */
+  figure.hero::after {
+    content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 62%;
+    background: linear-gradient(to bottom,
+      rgba(7,8,11,0) 0%, rgba(7,8,11,.32) 28%,
+      rgba(7,8,11,.76) 60%, var(--ground) 92%);
+    pointer-events: none; z-index: 1;
+  }
+  @media (min-width: 621px) {
+    /* A percentage margin resolves against the containing block's WIDTH, and the
+       banner is 77.8% of that width tall, so -34% lifts the article about 44% of
+       the way up the render. Keep the two numbers in step if the banner aspect
+       ever changes. */
+    figure.hero { margin-bottom: -34%; }
+    .wrap { position: relative; z-index: 2; }
   }
 
   /* ---- the floating screen ------------------------------------------------
@@ -71,7 +105,12 @@
   .heropanel {
     position: absolute; z-index: 3;
     top: clamp(16px, 4.2vw, 46px);
-    left: 50%; transform: translateX(-50%);
+    /* Centred with auto margins rather than left:50% + translateX(-50%), so that
+       `transform` is free for the hover lift and nothing else. When centring and
+       lifting shared the transform, animating it across the 620px breakpoint,
+       where the panel becomes static with transform:none, stranded the panel
+       half its width off centre until the page was reloaded. */
+    left: 0; right: 0; margin-left: auto; margin-right: auto;
     width: min(680px, calc(100% - 40px));
     background:
       linear-gradient(178deg, rgba(13,26,45,.80), rgba(7,14,26,.86) 62%, rgba(6,12,22,.90));
@@ -83,6 +122,28 @@
       0 0 0 1px rgba(6,12,22,.55),
       0 18px 54px rgba(0,0,0,.62),
       0 0 40px rgba(62,150,240,.10);
+  }
+  /* The panel already floats in front of the render, so hovering lifts it a
+     little further off and brightens its edge. Scoped to real pointers so a tap
+     on a phone does not leave it stuck in the hovered state. */
+  @media (hover: hover) and (min-width: 621px) {
+    .heropanel {
+      transition: transform .28s cubic-bezier(.22,.61,.36,1),
+                  box-shadow .28s cubic-bezier(.22,.61,.36,1),
+                  border-color .28s ease;
+    }
+    .heropanel:hover {
+      transform: translateY(-4px);
+      border-color: rgba(122,186,246,.42);
+      box-shadow:
+        0 0 0 1px rgba(6,12,22,.55),
+        0 30px 74px rgba(0,0,0,.70),
+        0 0 56px rgba(62,150,240,.18);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .heropanel { transition: none; }
+    .heropanel:hover { transform: none; }
   }
   /* the lit upper edge, brightest at the centre, the way an emitting surface reads */
   .heropanel::before {
@@ -147,9 +208,25 @@
     display: flex; flex-wrap: wrap; gap: 4px 16px;
   }
   .heropanel .meta b { color: #CBD8E8; font-weight: 500; letter-spacing: .06em; }
-  /* CSS uppercase turns the micro sign into a capital M, so a micrometre reads as
-     a millimetre and the figure is out by a thousand. The unit opts out. */
-  .unit { text-transform: none; }
+  /* Sits under the readouts, quieter than they are: this is authorship, not data. */
+  .heropanel .byline {
+    margin: 11px 0 0; padding-top: 10px;
+    border-top: 1px solid rgba(122,186,246,.14);
+    font-size: 11.5px; letter-spacing: .1em; text-transform: uppercase;
+    color: rgba(126,146,172,.9);
+  }
+  /* The handle is deliberately only in the footer. The top box carries the
+     authorship, not the social link, so the hero stays a caption and not a
+     call to action. */
+  footer .credit {
+    margin: 0 0 10px; font-size: 12px; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--dim);
+  }
+  footer .credit a {
+    color: #9EC8F2; letter-spacing: .06em; text-decoration: none;
+    border-bottom: 1px solid rgba(158,200,242,.28);
+  }
+  footer .credit a:hover { border-bottom-color: rgba(158,200,242,.7); }
 
   @media (max-width: 620px) {
     /* figure.hero is a centring flex box on desktop. Left as flex here, the now
@@ -255,6 +332,7 @@
     border-left: 3px solid var(--accent); border-radius: 0 8px 8px 0;
     color: var(--dim); font-size: 15px;
   }
+  .caveat { border-left-color: var(--warn); }
   .note b, .cap b { color: var(--ink); font-weight: 500; }
   footer { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--line);
             color: var(--faint); font-size: 14px; }
@@ -420,7 +498,12 @@
   }
   .stats .span2 { grid-column: span 2; }
   .volfig { margin: 26px 0 10px; }
-  .volfig img { border: 0; border-radius: 0; background: transparent; }
+  /* the block is the live scene from volume.html, framed; the still it replaced is
+     kept in that page as the no-WebGL fallback */
+  .volstage { position: relative; margin: 26px 0; }
+  .volstage iframe { display: block; width: 100%; aspect-ratio: 16/10; border: 0;
+    border-radius: 4px; background: #04060B; box-shadow: 0 0 0 1px rgba(112,190,255,.22); }
+  @media (max-width: 600px) { .volstage iframe { aspect-ratio: 4/3; } }
 
   @media (prefers-reduced-motion: reduce) {
         .holoframe img, .holoframe video, .holo, h2::before { transition: none; }
@@ -429,105 +512,500 @@
     .holoframe canvas.trace { display: none; }
   }
 
+
+  /* ---- seung lab variant ------------------------------------------------- */
+  .ft { display: block; color: var(--ink); font-weight: 500; font-size: 17px;
+        letter-spacing: -.012em; line-height: 1.3; margin: 0 0 6px; }
+  .ft .fd { font-style: normal; font-weight: 400; font-size: 10.5px; letter-spacing: .14em;
+            text-transform: uppercase; color: var(--faint); margin-left: 8px;
+            vertical-align: 2px; white-space: nowrap; }
+  .fx { display: block; }
+  .heropanel h1 {
+    background: linear-gradient(100deg, #6FB0FF 0%, #EAF4FF 26%, #BBDBFF 46%,
+      #64A6EE 68%, #A6D2FF 100%);
+    background-size: 220% 100%;
+    -webkit-background-clip: text; background-clip: text;
+    color: transparent; -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 2px 14px rgba(74,150,240,.38));
+    animation: wordmark-sheen 9s ease-in-out infinite;
+  }
+  @keyframes wordmark-sheen { 0%, 100% { background-position: 0% 0; } 50% { background-position: 100% 0; } }
+  .heropanel::before {
+    transition: left 620ms cubic-bezier(.16,1,.3,1), right 620ms cubic-bezier(.16,1,.3,1),
+                box-shadow 420ms ease;
+  }
+  .heropanel:hover::before, .heropanel:focus-within::before {
+    left: 2%; right: 2%; box-shadow: 0 0 14px rgba(150,212,255,.85);
+  }
+  .heropanel:hover .heroeyebrow u, .heropanel:focus-within .heroeyebrow u {
+    animation: holo-eyebrow-run 900ms linear infinite;
+  }
+  .heropanel:hover .heroeyebrow s, .heropanel:focus-within .heroeyebrow s {
+    animation: holo-eyebrow-blip 1400ms ease-in-out infinite;
+  }
+  @keyframes holo-eyebrow-run { to { background-position: -7px 0; } }
+  @keyframes holo-eyebrow-blip {
+    0%, 100% { box-shadow: 0 0 8px rgba(120,205,255,.9); }
+    50%      { box-shadow: 0 0 15px rgba(150,225,255,1); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .heropanel h1 { animation: none; background-position: 0 0; }
+    .heropanel::before { transition: none; }
+    .heropanel:hover .heroeyebrow u, .heropanel:hover .heroeyebrow s,
+    .heropanel:focus-within .heroeyebrow u, .heropanel:focus-within .heroeyebrow s { animation: none; }
+  }
 </style>
 </head>
 <body>
 
 <figure class="hero">
-  <img src="images/28_cortex.jpg" alt="Proofread neurons from the MICrONS mouse visual cortex volume, coloured by depth below the pia, gold at the surface through violet to deep blue">
+  <img src="images/00_banner_tall.jpg" alt="CA3 population rendered in full, coloured by cell class">
   <div class="heropanel">
     <i class="tl"></i><i class="tr"></i><i class="bl"></i><i class="br"></i>
     <div class="inner">
-      <p class="heroeyebrow"><s></s>microns mouse visual cortex<u></u>a second dataset</p>
-      <h1>Cortex</h1>
-      <p class="lede">The same measured geometry, a different piece of brain. These are
-      proofread neurons from the MICrONS volume, coloured by how deep they sit.</p>
+      <p class="heroeyebrow"><s></s>connectomic reconstruction<u></u>mouse ca3</p>
+      <h1>CA3 renderings</h1>
+      <p class="lede">Every image on this page is rendered from an electron
+      microscope reconstruction of a single block of mouse hippocampus.</p>
       <div class="rule"></div>
-      <p class="meta"><span><b>38</b> cells</span><span><b>481</b> <span class="unit">&micro;m</span> of cortex</span><span><b>34</b> located somata</span></p>
+      <p class="meta"><span><b>982</b> cells rendered</span><span><b>55,000+</b> mossy fibers traced</span><span><b>25,723</b> synapses</span></p>
+      <p class="byline">Rendered by Amy Sterling</p>
     </div>
   </div>
 </figure>
 
 <div class="wrap">
 
-  <h2>A core through cortex</h2>
-  <p>Every fully proofread neuron I hold from the MICrONS mouse visual cortex volume,
-  38 of them, seen side on with the pia at the top. Colour is not a property of
-  the cell. It is position: every point on every arbor is tinted by its own depth
-  below the surface, so one pyramidal neuron reads gold where its apical tuft reaches
-  layer 1 and blue where its soma and basal dendrites sit deep. Nothing draws the
-  layers in. They appear because that is where the cell bodies are.</p>
 
-  <figure data-hud="429 to 910 &micro;m deep">
-    <div class="holoframe"><canvas class="trace"></canvas><img src="images/28_cortex.jpg" alt="MICrONS cortical neurons coloured continuously by depth below the pia"></div>
-    <figcaption>The bright points are <b>real somata</b>, not estimates. Cell body
-    positions come from the CAVE nucleus table rather than from the meshes, because a
-    mesh centroid is noise inside a soma and the true coordinates are on record. The
-    34 located cell bodies span <b>429 to 910 &micro;m</b> below the pia with a
-    median of <b>630</b>, which is layer 2/3 through layer 6.</figcaption>
+
+
+<div class="cite" style="margin-top:6px">
+    <a class="cover" href="https://www.nature.com/neuro/volumes/29/issues/9"
+       title="Nature Neuroscience, September 2026"><img
+       src="images/cover_natneuro_2026_09.jpg" width="822" height="1093"
+       alt="Nature Neuroscience, September 2026"></a>
+    <div class="txt">
+    <span class="t"><a href="https://doi.org/10.1038/s41593-026-02388-9">Hippocampal CA3
+    connectomics reveals a gradient of mossy fiber inputs and selective feedforward
+    inhibition onto pyramidal cells</a></span>
+    Zheng, Park, Hammerschmith, Lu, Yu, Sorek, Silverman, Jordan, Sterling, Silversmith,
+    Schlegel, Jefferis, Collman, Seung, Tank &middot;
+    <b>Nature Neuroscience</b> <b>29</b>(9), 2311&ndash;2323, September 2026 &middot;
+    <a href="https://doi.org/10.1038/s41593-026-02388-9">doi:10.1038/s41593-026-02388-9</a>
+    <br>The journal version sits behind a paywall, so the
+    <a href="https://www.biorxiv.org/content/10.1101/2025.07.09.663979v1">open access
+    preprint</a> is worth keeping to hand. The dataset is shared through
+    <a href="https://pyr.ai">Pyr</a>, an online platform for hippocampal connectomics.
+    </div>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><div class="v">1,815</div><div class="k">pyramidal cells</div></div>
+    <div class="stat"><div class="v">229</div><div class="k">inhibitory cells</div></div>
+    <div class="stat"><div class="v">55,000+</div><div class="k">mossy fibers</div></div>
+    <div class="stat"><div class="v">25,200</div><div class="k">mossy fiber inputs mapped</div></div>
+    <div class="stat span2"><div class="v">1 &times; 1 &times; 0.1 mm</div><div class="k">of tissue, imaged whole</div></div>
+  </div>
+
+  <figure class="volfig" data-hud="1 x 1 x 0.1 mm block">
+    <div class="volstage"><iframe src="volume.html?embed" loading="lazy"
+      title="The reconstructed tissue block in 3D, with one pyramidal cell inside it. Drag to turn."></iframe></div>
+    <figcaption>The block that was cut, imaged and reconstructed: <b>1 x 1 x 0.1 mm</b>
+    of mouse CA3, live. Drag sideways to turn it. One pyramidal cell is drawn inside
+    at true relative scale. Nearly two thousand of them are in there, threaded through
+    by more than fifty five thousand mossy fibers. The
+    <a href="volume.html">full screen version</a> adds zoom.</figcaption>
   </figure>
 
-  <div class="holo">
-    <p class="k">the ramp spans</p>
-    <p class="v">310 &ndash; 1083 <span class="unit">&micro;m</span></p>
-    <p class="d">below the pia. Gold at the top of that range, deep blue at the
-    bottom, violet through the middle. Every point on every arbor is coloured by
-    its own depth, so one neuron carries the whole ramp along its length.</p>
-  </div>
+  <h2>Renders</h2>
 
-  <div class="holo">
-    <p class="k">located cell bodies</p>
-    <p class="v">34 <span class="unit">of</span> 38</p>
-    <p class="d">span <b>429</b> to <b>910</b> <span class="unit">&micro;m</span>, median
-    <b>630</b>, which is layer 2/3 through layer 6. Four cells have no nucleus in the
-    table and carry no marker.</p>
-  </div>
-
-  <div class="note">This uses the same three colour stops as the CA3 convergence
-  gradient, reversed. There the ramp encoded a measured quantity, how many mossy
-  fibers reach a cell. Here it encodes position in tissue. Same visual language, two
-  different kinds of fact, and it is worth saying which is which.</div>
-
-  <h2>Down through the layers</h2>
-  <p>The same cells, moving. A still of a column is ambiguous in one specific way:
-  you cannot tell whether the cells occupy a slab of tissue or happen to line up
-  from one viewpoint. The only way to answer that is to move the camera.</p>
+  <figure data-hud="304 cells, 0 to 235 inputs">
+    <div class="holoframe"><canvas class="trace"></canvas><img src="images/22_gradient.jpg" alt="304 CA3 pyramidal cells arranged along the curve of the cell layer, coloured from deep blue through violet to gold by how many mossy fiber inputs each one receives"></div>
+    <figcaption><span class="ft">The convergence gradient</span><span class="fx">304 pyramidal cells coloured by how
+    many mossy fibers reach them, deep blue for the fewest and gold for the most, on a
+    log scale because the count runs from 0 to 235 with a median of 41. Every cell here
+    sits in the deepest part of the block, where the reconstruction is most complete.
+    Read along the curve of the cell layer and the gradient is <b>not</b> a simple ramp:
+    both ends carry heavily innervated cells and the middle carries the fewest. In this
+    sample the median runs about 50 at one end, dips to 33 mid curve, then climbs to 72
+    at the far end, where the busiest cells reach 160 and above.</span></figcaption>
+  </figure>
 
   <figure>
-    <div class="holoframe"><canvas class="trace"></canvas><video controls playsinline muted loop preload="metadata" poster="images/30_orbit.jpg">
-      <source src="video/microns_orbit.mp4" type="video/mp4">
+    <div class="holoframe"><canvas class="trace"></canvas><video controls playsinline muted loop preload="metadata" poster="images/29_inhibition.jpg">
+      <source src="video/inhibition.mp4" type="video/mp4">
     </video></div>
-    <figcaption>Ten seconds. The camera swings 72 degrees around the column and
-    descends at the same time, so the apical tufts pass overhead before the deep
-    cells arrive. Colour is still each point's own depth below the pia, so a single
-    neuron reads gold at the top and blue at the bottom no matter which way it is
-    turned. Every cell is at 100 faces per square micrometre of membrane, a density
-    rather than a flat budget, so the large cells carrying those tufts are not the
-    least detailed ones.</figcaption>
+    <figcaption><span class="ft">Selective feedforward inhibition <em class="fd">eighteen seconds</em></span><span class="fx">Seven mossy
+    fibers converge on one interneuron, in emerald, and its axon then makes <b>333</b>
+    synapses onto <b>87</b> thorny pyramidal cells against only <b>50</b> onto <b>21</b>
+    sparsely thorny ones. Normalised by how many cells of each subtype exist here, that
+    is <b>2.49 times</b> more inhibition landing on each thorny cell. The wave travels
+    the interneuron's own cable, and each target lights at its real path distance, from
+    216 to 734 &micro;m out.</span></figcaption>
   </figure>
 
-  <h2>What is honest about this picture</h2>
-  <p>These cells were chosen because they are <b>proofread</b>, not because they are a
-  sample of anything. A neuron earns that status by a person checking it, so this is a
-  picture of 38 well traced cells, not of a cortical column. Real cortex at this
-  depth holds tens of thousands of neurons in the same space.</p>
-  <p>Nine of the mesh identifiers had gone stale since they were downloaded, because
-  proofreading keeps merging and splitting segments, and were resolved forward through
-  the chunked graph before the somata were looked up. Four cells have no nucleus in the
-  table and carry no soma marker.</p>
+  <figure>
+    <div class="holoframe"><canvas class="trace"></canvas><video controls playsinline muted loop preload="metadata" poster="images/27_ladder.jpg">
+      <source src="video/scale_ladder.mp4" type="video/mp4">
+    </video></div>
+    <figcaption><span class="ft">The scale ladder</span><span class="fx">Twenty seven seconds from the whole block to
+    a single synapse, holding on each rung long enough to read it. The tissue fills
+    with 1,064 cells, the view closes on one pyramidal neuron, then on the one thorny
+    excrescence where a mossy fiber wraps around it and makes <b>53</b> synapses inside
+    a box under seven micrometres on a side, and the spike arrives. Registration was
+    checked independently: this cell's soma lands on the stratum pyramidale boundary in
+    the real EM, with those boutons 39 um into the mossy fiber band.</span></figcaption>
+  </figure>
 
-  <div class="cite" style="margin-top:26px">
-    <span class="t">MICrONS, mouse visual cortex</span>
-    Data from the MICrONS Consortium, served through
-    <a href="https://www.microns-explorer.org">microns-explorer.org</a>.
-    Meshes and soma positions queried from CAVE, datastack
-    <code>minnie65_phase3_v1</code>.
-    To keep a clip, long press it on a phone or right click it on a desktop.
-    <br><a href="index.html">Back to the CA3 renderings</a>
+  <figure>
+    <div class="holoframe"><canvas class="trace"></canvas><video controls playsinline muted loop preload="metadata" poster="images/26_sweep.jpg">
+      <source src="video/gradient_sweep.mp4" type="video/mp4">
+    </video></div>
+    <figcaption><span class="ft">The gradient, measured as it goes</span><span class="fx">A band of light travels the
+    cell layer and the readout recomputes the median mossy fiber input count for the
+    cells inside it, from the same measurements that set the colours, so the number
+    and the cells lit under it cannot disagree. Watch the figure rather than the
+    caption: it starts near <b>51</b>, falls to <b>33</b> through the middle, and
+    climbs past <b>64</b> at the far limb, where the busiest cells carry more than
+    <b>170</b>. The count of cells in the band is shown throughout, because the
+    sample thins at the ends and a median over twenty cells deserves less weight
+    than one over eighty.</span></figcaption>
+  </figure>
+
+  <h3>Why the variation matters</h3>
+
+  <p>The textbook picture of this connection is a <b>detonator</b>. Each CA3 pyramidal
+  cell is supposed to hear from only a handful of granule cells, but so powerfully that
+  one of them can nearly fire the cell by itself. Few inputs, each enormous, is exactly
+  the arrangement you would design if you wanted two similar experiences to end up
+  recruiting two different sets of CA3 cells &mdash; which is what <b>pattern
+  separation</b> means, and why this synapse is thought to matter for laying down a
+  memory that does not smear into yesterday's.</p>
+
+  <p>That picture assumes every CA3 cell is roughly alike. This gradient says otherwise.
+  How much dentate input a cell receives depends substantially on <b>where it sits</b>
+  along the layer, and the spread is not subtle: the busiest cells here carry more than
+  five times the median of the quietest stretch. A cell's position is part of its job
+  description, so CA3 is less a uniform pool of interchangeable units than the classical
+  model treats it as.</p>
+
+  <p>The most interesting part is the twist, and it cuts against the simple reading.
+  The distal cells that collect the <b>most</b> inputs collect them through
+  <b>smaller</b> terminals holding <b>fewer</b> vesicles. Count and per-contact strength
+  run in opposite directions. So the gradient in the numbers above is not a gradient in
+  raw drive, and reading it as one would overstate it &mdash; a cell with three times
+  the contacts is not being shouted at three times as loudly. It looks more like the
+  same total budget being spent two different ways: a few loud inputs at one end of the
+  layer, many quiet ones at the other.</p>
+
+  <p>The wiring also turns out to be <b>spatial</b>. Cells here share far more mossy
+  fiber inputs than chance allows, but that sharing is explained better by which cells
+  sit near each other than by how many inputs each one has. Neighbours sample the same
+  passing fibers. That is in real tension with pattern separation, which works best when
+  nearby cells hear different things, and it is the kind of constraint you only see once
+  you can trace every fiber rather than sample a few.</p>
+
+  <div class="note caveat">What this cannot tell you. Terminal size and vesicle count
+  are anatomical <b>proxies</b> for synaptic strength, not recordings of it; nobody
+  measured a current here. The gradient is traced across roughly <b>1.1 mm</b> of one
+  block from one animal, which is a slice of the proximodistal axis rather than the
+  whole of it, and one animal cannot tell you what varies between animals. And the
+  sample thins toward both ends, which is why the cell count sits in the readout the
+  whole way along.</div>
+
+  <div class="grid">
+    <figure>
+      <div class="holoframe"><canvas class="trace"></canvas><video controls playsinline muted loop preload="metadata" poster="images/23_build_wide.jpg">
+        <source src="video/build_sequence_wide.mp4" type="video/mp4">
+      </video></div>
+      <figcaption><span class="ft">The population, widescreen <em class="fd">twenty seconds</em></span><span class="fx">Populations arrive
+      in circuit order: mossy fibers first, then the cells they drive, then the wider
+      pyramidal population, and inhibitory interneurons last.</span></figcaption>
+    </figure>
+    <figure>
+      <div class="holoframe"><canvas class="trace"></canvas><video controls playsinline muted loop preload="metadata" poster="images/24_story_wide.jpg">
+        <source src="video/synapse_story_wide.mp4" type="video/mp4">
+      </video></div>
+      <figcaption><span class="ft">The synapse story, widescreen <em class="fd">nineteen seconds</em></span><span class="fx">The same
+      sequence as further down the page, rendered for a wide screen rather than
+      cropped to one.</span></figcaption>
+    </figure>
   </div>
 
-</div>
+  <p class="note">These two are tall subjects in a wide frame, so they carry black at
+  the sides. The population is deeper than it is broad and nothing is cropped to hide
+  that.</p>
 
+  <h2>Watch it assemble</h2>
+  <div class="vidwrap">
+    <figure data-hud="982 cells · 25,723 synapses">
+      <div class="holoframe"><canvas class="trace"></canvas><video controls playsinline muted loop preload="metadata" poster="images/01_current.jpg"
+             data-wide="video/build_sequence_wide.mp4"
+             data-wide-poster="images/23_build_wide.jpg">
+        <source src="video/build_sequence.mp4" type="video/mp4">
+      </video></div>
+      <figcaption>Populations arrive in circuit order: mossy fibers first as the incoming
+      signal, then the CA3 cells they drive, then the wider pyramidal population, and
+      inhibitory interneurons last.</figcaption>
+    </figure>
+  </div>
+
+  <h2>What the study found</h2>
+
+  <p>The hippocampus is where experience becomes memory, and CA3 is the part that binds
+  the pieces of an event together. To understand how, you need to know not just which
+  cells are present but exactly which ones talk to each other.</p>
+
+  <p>This study took a block of mouse CA3, imaged it with an electron microscope, and
+  traced every neuron and every connection inside it. The result is a complete wiring
+  diagram of a small piece of real brain: <b>1,815 pyramidal cells</b>, the main
+  excitatory neurons, <b>229 inhibitory cells</b>, and more than <b>55,000 mossy
+  fibers</b>, the axons carrying signals in from the neighbouring dentate gyrus.</p>
+
+  <h3>Not all pyramidal cells are alike</h3>
+  <p>Some are covered in elaborate spiny structures called thorny excrescences, and these
+  cells receive many mossy fiber inputs. Others, the sparsely thorny cells, receive almost
+  none. The split is sharp rather than gradual, so these are genuinely two kinds of cell
+  rather than two ends of one continuum.</p>
+
+  <figure>
+    <div class="holoframe"><canvas class="trace"></canvas><img src="images/11_thorn_somas.jpg" alt="Pyramidal cell bodies covered in thorny excrescences"></div>
+    <figcaption>Thorny excrescences on pyramidal cell bodies. Each balloon like
+    cluster is a single elaborate spine, and a mossy fiber terminal wraps around it.</figcaption>
+  </figure>
+
+  <h3>Input is unevenly spread across space</h3>
+  <p>Cells further along the region receive substantially more mossy fiber contacts than
+  cells nearer the beginning. Cells sharing the same incoming fibers also sit closer
+  together than chance would predict, suggesting the wiring is organised rather than
+  arbitrary. Curiously, the cells receiving the most inputs get them through
+  <i>smaller</i> terminals holding fewer vesicles, so more connections does not simply
+  mean more of everything.</p>
+
+  <h3>Inhibition is targeted, not general</h3>
+  <p>Mossy fibers also drive inhibitory neurons, which act as brakes on the circuit. But
+  they drive only the inhibitory neurons that go on to target thorny cells. Those serving
+  sparsely thorny cells receive no mossy fiber input at all. So the same signal that
+  excites one type of cell also recruits the brake belonging specifically to that type,
+  leaving the other type untouched.</p>
+
+  <h2>182 thorny pyramidal cells</h2>
+  <figure class="badge" data-hud="182 thorny cells">
+    <div class="holoframe"><canvas class="trace"></canvas><img src="images/03_thorny.jpg" alt="Thorny pyramidal cells rendered alone"></div>
+  </figure>
+
+  <h2>Inside a single cell</h2>
+  <p>Thorny excrescences are the elaborate spines that give thorny pyramidal cells their
+  name. A mossy fiber ends on one in a single enormous terminal, making dozens of contacts
+  at one site rather than one contact in many places. This cell receives
+  <b>165 mossy fiber synapses from just 6 fibers</b>.</p>
+  <div class="cellstage">
+    <img src="images/15_cell_alpha.png"
+         alt="One thorny pyramidal cell in blue with the six mossy fibers that contact it in gold">
+    <div class="holo-tr">
+      <div class="holo">
+        <p class="k">this one cell receives</p>
+        <p class="v">165</p>
+        <p class="d">mossy fiber synapses, and they arrive from only <b>6</b> fibers.</p>
+      </div>
+      <div class="holo">
+        <p class="k">per fiber, on average</p>
+        <p class="v">27</p>
+        <p class="d">synapses. A mossy fiber does not touch a cell once: its terminal
+        wraps a single thorn and makes dozens of contacts there.</p>
+      </div>
+    </div>
+    <div class="holo-bl">
+      <div class="holo">
+        <p class="k">in the full volume</p>
+        <p class="v">1,815</p>
+        <p class="d">pyramidal cells, <b>229</b> inhibitory cells and more than
+        <b>55,000</b> mossy fibers were reconstructed.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="vidwrap" style="margin-top:20px">
+    <figure>
+      <div class="holoframe"><canvas class="trace"></canvas><video controls playsinline muted loop preload="metadata"
+             poster="images/14_cell_zoom.jpg"
+             data-wide="video/cell_zoomout_wide.mp4"
+             data-wide-poster="images/17_cell_wide_poster.jpg">
+        <source src="video/cell_zoomout.mp4" type="video/mp4">
+      </video></div>
+      <figcaption>Eight seconds, thorns to whole cell. The mossy fibers arrive
+      nearest first, so the one already in frame is the one that appears.</figcaption>
+    </figure>
+  </div>
+
+  <h2>Watch it fire</h2>
+  <p>Six mossy fibers reach this cell, and this is the honest version of what they do.
+  One fires, lands hard on the thorn, and the cell does not answer. The other five
+  arrive. All six fire together, and only then does the cell send a signal of its own.
+  The pulse is not a sweep across the screen: every point on these meshes carries its
+  own distance measured along the cell's own skeleton, so the wavefront follows the
+  real branching and splits wherever the cable splits.</p>
+  <div class="vidfull">
+    <figure data-hud="165 synapses · 6 fibers">
+      <div class="holoframe"><canvas class="trace"></canvas><video controls playsinline muted loop preload="metadata" poster="images/20_ap_six_poster.jpg">
+        <source src="video/ap_six.mp4" type="video/mp4">
+      </video></div>
+      <figcaption>Eighteen seconds. All <b>165</b> mossy fiber synapses onto this one
+      cell, from all six fibers that reach it.</figcaption>
+    </figure>
+  </div>
+  <div class="note">A single mossy fiber makes one of the strongest connections in the
+  brain, touching a CA3 pyramidal cell at dozens of release sites at once. Even so, one
+  incoming spike is usually not enough to make the cell fire. When the granule cell
+  fires a rapid burst of a few spikes, the connection strengthens within milliseconds
+  and then reliably triggers a spike. That is why these are called
+  <b>conditional detonator</b> synapses.
+  <br><br>Two limits worth stating. The reconstruction is cut off at the edge of the
+  tissue block, so this arbor is incomplete. And the descending branches carrying the
+  signal are mostly basal dendrite with the axon embedded in them; at this resolution
+  the two could not be cleanly separated.
+  <a href="ap.html">Three other cuts of the same event are here.</a></div>
+
+  <h2>Every synapse these cells make</h2>
+  <p>Sixteen CA3 pyramidal cells were traced. Fifteen of them have their axon followed
+  through the volume, and those axons make <b>25,723</b> synapses onto <b>6,348</b> other
+  cells in the same block of tissue. Every one sits at its real measured coordinate, not
+  an estimated position.</p>
+  <div class="note">That works out to a median of <b>1,949 outgoing synapses per cell</b>,
+  which sounds impossibly high until you remember what CA3 is for. Its pyramidal cells are
+  the most heavily interconnected population in the hippocampus, wiring back onto each
+  other through vast recurrent axon collaterals, and this is the network that theory says
+  lets the hippocampus complete a whole memory from a fragment of one. The gold beads
+  string along each axon because that is physically where the contacts are made, one
+  after another as the axon passes its targets. Most partners are touched just once:
+  <b>58%</b> receive a single synapse.</div>
+
+  <div class="vidwrap" style="margin-top:20px">
+    <figure data-hud="25,723 synapses">
+      <div class="holoframe"><canvas class="trace"></canvas><video controls playsinline muted loop preload="metadata" poster="images/10_story.jpg"
+             data-wide="video/synapse_story_wide.mp4"
+             data-wide-poster="images/24_story_wide.jpg">
+        <source src="video/synapse_story.mp4" type="video/mp4">
+      </video></div>
+      <figcaption>The presynaptic cells fade up, their synapses bloom across the volume, and then the postsynaptic partners arrive around them.</figcaption>
+    </figure>
+  </div>
+
+  <h2>A sea of mossy fibers</h2>
+  <p>Seen edge on, the pyramidal cell bodies hang in a single layer while the mossy
+  fibers thread horizontally through them. Every gold strand is an axon arriving from
+  the dentate gyrus.</p>
+  <figure>
+    <div class="holoframe"><canvas class="trace"></canvas><img src="images/g3_sea-of-mossy-fibers.jpg" alt="Pyramidal cell bodies in blue with mossy fibers threading through in gold"></div>
+  </figure>
+
+  <h2>The classification, reproduced</h2>
+  <p>The study separates thorny from sparsely thorny cells by mossy fiber convergence,
+  drawing the line at more than 10 inputs. That split reproduces cleanly in this subset.</p>
+  <table>
+    <tr><th>population</th><th>with MF input</th><th>median inputs</th><th>above 10</th></tr>
+    <tr><td>Thorny pyramidal</td><td>94 / 182</td><td>22</td><td>71%</td></tr>
+    <tr><td>Sparsely thorny</td><td>8 / 68</td><td>1</td><td>0%</td></tr>
+    <tr><td>Inhibitory</td><td>9 / 28</td><td>2</td><td>22%</td></tr>
+  </table>
+  <div class="note">Thorny cells reach <b>165</b> mossy fiber inputs at the top end.
+  Sparsely thorny cells max out at <b>3</b>, and not one crosses the threshold. Only
+  <b>9 of 28</b> interneurons receive mossy fiber input at all, which is the selectivity
+  the feedforward inhibition result describes.</div>
+
+  <h2>Gallery</h2>
+  <p>Stills from the same reconstruction, at full size, and one slow pass across the
+  convergence gradient. Tap any still to open the large version.</p>
+  <div class="gal">
+
+    <figure class="wide">
+      <div class="holoframe"><canvas class="trace"></canvas><video controls playsinline muted loop preload="metadata" poster="images/25_orbit.jpg">
+        <source src="video/gradient_orbit.mp4" type="video/mp4">
+      </video></div>
+      <figcaption><b>A slow pass across the gradient.</b> Twelve seconds, a sixth of a
+      turn, eased at both ends so the arch is read rather than spun. Colour is how many
+      mossy fibers reach each cell, the same measurement as the still further up. What
+      the movement adds is depth: these are 304 cells occupying a curved sheet of
+      tissue, not points on a scatter plot.</figcaption>
+    </figure>
+
+    <figure class="wide">
+      <a href="images/g2_ca3-population-bouton-inset_full.jpg">
+        <div class="holoframe"><canvas class="trace"></canvas><img src="images/g2_ca3-population-bouton-inset.jpg"
+             alt="The CA3 population as a broad V shaped band with a circular inset on one mossy fiber bouton"></div></a>
+      <figcaption>The reconstructed population seen face on, gold mossy fibers threading
+      through crowds of cells. The inset follows one mossy fiber axon down to its boutons,
+      with a partner cell process pressed against it.</figcaption>
+    </figure>
+
+    <figure class="wide">
+      <a href="images/g1_pyramidal-soma-lineup_full.jpg">
+        <div class="holoframe"><canvas class="trace"></canvas><img src="images/g1_pyramidal-soma-lineup.jpg"
+             alt="A row of CA3 pyramidal cell bodies, each in a different colour"></div></a>
+      <figcaption>Pyramidal cell bodies lined up as they sit in the layer, one colour each.
+      The apical dendrites climb out of the top carrying their thorny excrescences, and the
+      basal dendrites fan out below.</figcaption>
+    </figure>
+
+    <figure class="tall" data-hud="56 partner cells">
+      <div class="holoframe"><canvas class="trace"></canvas><video controls playsinline muted loop preload="metadata" poster="images/19_partners.jpg">
+        <source src="video/cell_partners.mp4" type="video/mp4">
+      </video></div>
+      <figcaption>These six mossy fibers are not private to this cell. Each carries on
+      through the tissue and lands on <b>56 further segments</b>, another 126 synapses.
+      Fourteen of those are complete cells with a nucleus in the volume, split evenly
+      between the two pyramidal subtypes; the rest are traced fragments. The purple is
+      not senders, it is fellow listeners hearing the same signal at the same moment.</figcaption>
+    </figure>
+
+    <figure>
+      <a href="images/16_cell_wide_full.jpg">
+        <div class="holoframe"><canvas class="trace"></canvas><img src="images/16_cell_wide.jpg"
+             alt="A single thorny pyramidal cell with six mossy fibers, in widescreen"></div></a>
+      <figcaption>One thorny pyramidal cell and the six mossy fibers that reach it.</figcaption>
+    </figure>
+
+    <figure>
+      <a href="images/07_synapses.jpg">
+        <div class="holoframe"><canvas class="trace"></canvas><img src="images/07_synapses.jpg"
+             alt="Presynaptic CA3 cells in pink with their synapses marked in gold"></div></a>
+      <figcaption>Sixteen presynaptic cells in pink, with all 25,723 of their synapses
+      in gold. The beads string along each axon because that is physically where the
+      contacts are made, one after another as it passes its targets.</figcaption>
+    </figure>
+
+    <figure>
+      <a href="images/13_thorn_macro.jpg">
+        <div class="holoframe"><canvas class="trace"></canvas><img src="images/13_thorn_macro.jpg"
+             alt="Close view of a thorny excrescence"></div></a>
+      <figcaption>A thorny excrescence up close. This tangle is a single spine.</figcaption>
+    </figure>
+
+    <figure>
+      <a href="images/09_hero_bouton.jpg">
+        <div class="holoframe"><canvas class="trace"></canvas><img src="images/09_hero_bouton.jpg"
+             alt="A gold mossy fiber terminal wrapped around a thorny excrescence"></div></a>
+      <figcaption>A mossy fiber terminal in gold, wrapped around a thorny excrescence.
+      The blue thorns push out through the terminal that engulfs them.</figcaption>
+    </figure>
+
+  </div>
+
+  <h2>Colour key</h2>
+  <figure><div class="holoframe"><canvas class="trace"></canvas><img src="images/04_key.jpg" alt="Colour key for the six populations"></div></figure>
+
+  <footer>
+    <p class="credit">Rendered by Amy Sterling
+      <a href="https://x.com/amyneurons" rel="me noopener">@amyneurons</a></p>
+    Meshes pulled from the segmentation through
+    <a href="https://caveclient.readthedocs.io/">CAVE</a> and rendered in Blender.
+    To keep a clip, long press it on a phone or right click it on a desktop.
+    <br><a href="cortex.html">Cortex renderings, MICrONS</a> &middot;
+    <a href="https://pyr.ai">Explore the dataset on Pyr</a> &middot;
+    <a href="https://github.com/amyleesterling/ca3">Source on GitHub</a>.
+  </footer>
+
+</div>
 <script>
 (function () {
   // Readouts are pulled off the media itself, so they cannot drift out of date.
@@ -572,7 +1050,8 @@
     }
   });
 })();
-</script><script>
+</script>
+<script>
 (function () {
   if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
   var PAD = 26, N = 64, DUR = 1500, R = 15;
@@ -746,7 +1225,8 @@
     frame.addEventListener("focusin", start);
   });
 })();
-</script><script>
+</script>
+<script>
 (function () {
   document.querySelectorAll(".holoframe").forEach(function (f) {
     var v = f.querySelector("video");
@@ -762,7 +1242,8 @@
     sync();
   });
 })();
-</script><script>
+</script>
+<script>
 (function () {
   // Vertical is the markup default, so a phone never starts fetching the wide
   // file. Anything with room swaps to the widescreen master and lets the

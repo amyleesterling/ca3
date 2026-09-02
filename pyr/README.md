@@ -1,19 +1,30 @@
-# pyr.ai/gallery is this site
+# The Seung Lab version, at pyr.ai/gallery
 
-The gallery page on pyr.ai is a verbatim mirror of this repository: the same
-pages, images, films and 3D block, served from `pyr.ai/gallery/`. Nothing is
-adapted, because every URL here is relative.
+pyr.ai/gallery is this site, mirrored whole, with a few deliberate differences
+for the lab's audience. Every difference is one literal replacement in
+`seunglab.py`, asserted against the source, so a change here that moves an
+anchor fails the build loudly instead of shipping the unmodified page.
 
-`mirror.sh` does the copy into a checkout of `seung-lab/pyr-homepage-static`
-(its **main** branch deploys pyr.ai):
+What differs, today:
+
+- the header's triangle count gives way to the mossy fibers traced, and the
+  wordmark, top hairline and eyebrow rail take after the scifi-ui masthead
+- "Overnight renders" is "Renders", the making-of paragraph is gone, and each
+  caption in that section reads as a title with its explainer under it
+- on the single cell, the triangle count becomes synapses per fiber
+
+**Preview** the variant on this site, built by `sh pyr/preview.sh` into
+`seunglab/` (one HTML file that borrows all media from the real site):
+https://amyleesterling.github.io/ca3/seunglab/
+
+**Ship** it to pyr.ai from a machine with both repos checked out
+(`seung-lab/pyr-homepage-static`, main branch deploys):
 
     sh pyr/mirror.sh ../pyr-homepage-static
     cd ../pyr-homepage-static && git commit -m "Mirror the CA3 renderings site at /gallery" && git push origin main
 
-It moves the old FlyWire gallery page aside as `gallery-flywire.html` so the
-directory index wins at `/gallery`, then rsyncs `*.html`, `favicon.ico`,
-`images/`, `video/` and `web/` into `gallery/`. Re-run it after any change here.
-
-Two things it does not do, on purpose: it does not touch pyr's navigation (the
-GALLERY link there is commented out in every page's nav; uncomment it when the
-mirror lands), and it does not copy `.claude/`, `pyr/` or the git history.
+`mirror.sh` copies `*.html`, `favicon.ico`, `images/`, `video/` and `web/` into
+`gallery/`, applies `seunglab.py` to the front page there, and moves pyr's old
+FlyWire gallery page aside as `gallery-flywire.html` so the directory index wins
+at `/gallery`. It does not touch pyr's navigation: the GALLERY link is commented
+out in every page's nav there and wants uncommenting when the mirror lands.
