@@ -17,6 +17,10 @@
 <link rel="icon" href="favicon.ico" sizes="any">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
+<script>
+  // ?embed strips the page down to the stage so the front page can frame it.
+  if (/[?&]embed\b/.test(location.search)) document.documentElement.className = "embed";
+</script>
 <style>
   :root { --ink:#EFF2F7; --dim:#9AA2B1; --faint:#666E7C; --ground:#07080B;
           --panel:#0F1218; --line:#1D222B; --accent:#3E96F0; }
@@ -73,6 +77,21 @@
            color:var(--faint); font-size:14px; }
   footer .credit { margin:0 0 8px; color:#C4CCD8; font-size:15px; }
   @media (prefers-reduced-motion: reduce) { #hint, #load { transition:none; } }
+
+  /* Embedded in the front page the stage is the whole viewport, the copy is the
+     host's job, and the controls ride inside the corner. Vertical touch drags are
+     left to the browser so a thumb can scroll past the block; sideways turns it. */
+  .embed body { overflow:hidden; }
+  .embed .wrap { max-width:none; padding:0; }
+  .embed h1, .embed .lede, .embed .note, .embed .wrap > p, .embed footer { display:none; }
+  .embed #stage { aspect-ratio:auto; height:100vh; height:100dvh; border:0; border-radius:0;
+                  touch-action:pan-y pinch-zoom; }
+  .embed #stage canvas { touch-action:pan-y pinch-zoom !important; }
+  .embed .ctl { position:fixed; z-index:2; left:10px; bottom:10px; margin:0; gap:6px; }
+  .embed .ctl button { font-size:10px; padding:5px 9px; letter-spacing:.09em;
+                       background:rgba(8,14,24,.82); }
+  .embed #hint { bottom:48px; text-shadow:0 1px 6px #04060B; }
+  @media (max-width:520px) { .embed .tag.tr { display:none; } }
 </style>
 </head>
 <body>
@@ -140,7 +159,15 @@ const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x04060b);
 
 const camera = new THREE.PerspectiveCamera(38, 16 / 10, 1, 20000);
-const renderer = new THREE.WebGLRenderer({ antialias: true });
+let renderer;
+try {
+  renderer = new THREE.WebGLRenderer({ antialias: true });
+} catch (e) {
+  stage.style.background = "#04060B url(images/21_volume.png) center/contain no-repeat";
+  document.getElementById("load").textContent = "3D needs WebGL; this is the still";
+  document.getElementById("hint").remove();
+  throw e;
+}
 renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 stage.appendChild(renderer.domElement);
@@ -150,6 +177,17 @@ controls.enableDamping = true;
 controls.dampingFactor = 0.06;
 controls.minDistance = 220;
 controls.maxDistance = 5200;
+const embedded = document.documentElement.classList.contains("embed");
+if (embedded) {
+  // A wheel over the block must scroll the page, not zoom the block: with zoom off
+  // OrbitControls returns before preventDefault and the event reaches the host.
+  controls.enableZoom = false;
+  controls.enablePan = false;
+  // OrbitControls sets touch-action:none on the canvas in its constructor, which
+  // would swallow vertical thumb scrolls; the stylesheet wins it back with
+  // !important but the inline value is cleared too, for browsers that differ.
+  renderer.domElement.style.touchAction = "";
+}
 
 // Data z is the thin 100 um axis. three.js is Y up, so the whole assembly is turned
 // a quarter turn about X: data z becomes world Y and the slab lies flat, which is
@@ -199,9 +237,13 @@ new GLTFLoader().load("./web/cell.glb", (gltf) => {
   cell.position.copy(CELL_OFFSET).sub(mid);
   cell.traverse((o) => {
     if (!o.isMesh) return;
+    // The GLB carries positions and vertex colours but NO normals (checked in the
+    // file: attributes are POSITION and COLOR_0). Without normals a lit material
+    // shades every face black and the cell reads as a silhouette. Compute them.
+    if (!o.geometry.attributes.normal) o.geometry.computeVertexNormals();
     o.material = new THREE.MeshStandardMaterial({
-      color: 0x2e8be0, roughness: 0.62, metalness: 0.0,
-      emissive: 0x0d3b6b, emissiveIntensity: 0.5,
+      color: 0x3a9af0, roughness: 0.62, metalness: 0.0,
+      emissive: 0x1a5fa6, emissiveIntensity: 0.7,
     });
   });
   root.add(cell);
@@ -282,7 +324,15 @@ if (slow) spin = false;
 window.__volume = { THREE, scene, camera, renderer, root, controls,
                     draw: () => renderer.render(scene, camera) };
 
+// Off screen, stop drawing. On the front page this sits above a long scroll and
+// a WebGL loop that nobody can see is battery for nothing. The observer measures
+// against the top level viewport even from inside the iframe.
+let onScreen = true;
+if ("IntersectionObserver" in window)
+  new IntersectionObserver((es) => { onScreen = es[0].isIntersecting; }).observe(stage);
+
 renderer.setAnimationLoop(() => {
+  if (!onScreen) return;
   if (spin) root.rotation.z += 0.0016;   // about the slab's own normal, so it stays flat
   controls.update();
   renderer.render(scene, camera);

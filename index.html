@@ -488,17 +488,12 @@
   }
   .stats .span2 { grid-column: span 2; }
   .volfig { margin: 26px 0 10px; }
-  .volfig img { border: 0; border-radius: 0; background: transparent; }
-  /* the still is a doorway: the caption link alone was easy to scroll past, so the
-     picture itself opens volume.html and says so on its face */
-  .vollink { display: block; text-decoration: none; color: inherit; }
-  .open3d { position: absolute; left: 50%; bottom: 5%; transform: translateX(-50%);
-    z-index: 4; white-space: nowrap; font-size: 11px; letter-spacing: .14em;
-    text-transform: uppercase; color: var(--ink); background: rgba(8,14,24,.82);
-    border: 1px solid rgba(112,190,255,.45); border-radius: 3px; padding: 8px 14px;
-    transition: border-color .2s ease, background .2s ease; }
-  .vollink:hover .open3d, .vollink:focus-visible .open3d {
-    border-color: rgba(150,212,255,.9); background: rgba(8,14,24,.95); }
+  /* the block is the live scene from volume.html, framed; the still it replaced is
+     kept in that page as the no-WebGL fallback */
+  .volstage { position: relative; margin: 26px 0; }
+  .volstage iframe { display: block; width: 100%; aspect-ratio: 16/10; border: 0;
+    border-radius: 4px; background: #04060B; box-shadow: 0 0 0 1px rgba(112,190,255,.22); }
+  @media (max-width: 600px) { .volstage iframe { aspect-ratio: 4/3; } }
 
   @media (prefers-reduced-motion: reduce) {
         .holoframe img, .holoframe video, .holo, h2::before { transition: none; }
@@ -558,12 +553,13 @@
   </div>
 
   <figure class="volfig" data-hud="1 x 1 x 0.1 mm block">
-    <a class="holoframe vollink" href="volume.html" aria-label="Open the interactive 3D block"><canvas class="trace"></canvas><img src="images/21_volume.png" alt="Wireframe diagram of the reconstructed tissue block with one pyramidal cell inside it for scale"><span class="open3d">Interactive &middot; turn the block in 3D &rarr;</span></a>
+    <div class="volstage"><iframe src="volume.html?embed" loading="lazy"
+      title="The reconstructed tissue block in 3D, with one pyramidal cell inside it. Drag to turn."></iframe></div>
     <figcaption>The block that was cut, imaged and reconstructed: <b>1 x 1 x 0.1 mm</b>
-    of mouse CA3. One pyramidal cell is drawn inside it at true relative scale. Nearly
-    two thousand of them are in there, threaded through by more than fifty five
-    thousand mossy fibers. <a href="volume.html">Turn it yourself</a>: the same block,
-    plate and cell, in 3D.</figcaption>
+    of mouse CA3, live. Drag sideways to turn it. One pyramidal cell is drawn inside
+    at true relative scale. Nearly two thousand of them are in there, threaded through
+    by more than fifty five thousand mossy fibers. The
+    <a href="volume.html">full screen version</a> adds zoom.</figcaption>
   </figure>
 
   <h2>Overnight renders</h2>
