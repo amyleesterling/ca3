@@ -113,6 +113,8 @@
     <button type="button" id="btn-edge">Edge on</button>
     <button type="button" id="btn-reset">Reset</button>
     <button type="button" id="btn-spin">Pause spin</button>
+    <button type="button" id="btn-fibre">Mossy fiber</button>
+    <button type="button" id="btn-more" hidden>More cells</button>
     <button type="button" id="btn-save">Download</button>
   </div>
 
@@ -123,7 +125,9 @@
   relative scale, and it sits where it actually sits: <b>221</b> and <b>219</b>
   <span class="unit">&micro;m</span> from the block centre, almost exactly mid slab in
   depth. Turn it edge on and you can see that a 92 <span class="unit">&micro;m</span> tall
-  cell nearly fills the 100 <span class="unit">&micro;m</span> thickness.</div>
+  cell nearly fills the 100 <span class="unit">&micro;m</span> thickness. <b>Mossy
+  fiber</b> adds the one fiber that contacts this cell, the same pair the
+  <a href="viewer.html">action potential viewer</a> runs a pulse along.</div>
 
   <p style="margin-top:22px"><a href="./">Back to the renderings</a> &middot;
   <a href="viewer.html">The action potential, interactive</a> &middot;
@@ -247,10 +251,62 @@ new GLTFLoader().load("./web/cell.glb", (gltf) => {
     });
   });
   root.add(cell);
+  shift = cell.position.clone();
+  pending.splice(0).forEach((put) => put());
   document.getElementById("load").classList.add("gone");
 }, undefined, () => {
   document.getElementById("load").textContent = "could not load the cell mesh";
 });
+
+// ---- company for the cell ---------------------------------------------------------
+// cell.glb and fibre.glb were exported in one frame, centred on scene.json's centre
+// (viewer.html adds both with no offset), so the fibre takes exactly the translation
+// the cell took, once the cell has been measured. Nothing loads until asked for.
+//
+// web/cells.json, if it exists, lists further GLBs in that same frame and switches
+// on a "More cells" button. It does not exist yet: exporting more cells needs CAVE
+// access, which the page has no business having. Drop the files in, list them, and
+// the button appears.
+let shift = null;
+const pending = [];
+function lit(hex, glow) {
+  return new THREE.MeshStandardMaterial({ color: hex, roughness: 0.62, metalness: 0,
+                                          emissive: glow, emissiveIntensity: 0.7 });
+}
+function place(file, mat, group) {
+  new GLTFLoader().load(file, (g) => {
+    const m = g.scene;
+    m.traverse((o) => {
+      if (!o.isMesh) return;
+      if (!o.geometry.attributes.normal) o.geometry.computeVertexNormals();
+      o.material = mat;
+    });
+    const put = () => { m.position.copy(shift); group.add(m); };
+    shift ? put() : pending.push(put);
+  }, undefined, () => {
+    document.getElementById("load").textContent = "could not load " + file.split("/").pop();
+    document.getElementById("load").classList.remove("gone");
+  });
+}
+function toggle(btn, group, files, mat, on, off) {
+  let loaded = false;
+  btn.onclick = () => {
+    if (!loaded) { files.forEach((f) => place(f, mat, group)); loaded = true; }
+    group.visible = !group.visible;
+    btn.textContent = group.visible ? off : on;
+  };
+}
+const fibreG = new THREE.Group(); fibreG.visible = false; root.add(fibreG);
+toggle(document.getElementById("btn-fibre"), fibreG, ["./web/fibre.glb"],
+       lit(0xF2B84A, 0x9a6a14), "Mossy fiber", "Hide fiber");
+
+const moreG = new THREE.Group(); moreG.visible = false; root.add(moreG);
+fetch("./web/cells.json").then((r) => (r.ok ? r.json() : null)).then((list) => {
+  if (!Array.isArray(list) || !list.length) return;
+  const b = document.getElementById("btn-more");
+  b.hidden = false;
+  toggle(b, moreG, list, lit(0x9fc0e6, 0x2a4566), "More cells", "Fewer cells");
+}).catch(() => {});
 
 // ---- views -----------------------------------------------------------------------
 const TARGET = new THREE.Vector3(0, 0, 0);
