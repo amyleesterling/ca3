@@ -38,8 +38,16 @@ Or from a machine with both repos checked out
     sh pyr/mirror.sh ../pyr-homepage-static
     cd ../pyr-homepage-static && git commit -m "Mirror the CA3 renderings site at /gallery" && git push origin main
 
-`mirror.sh` copies `*.html`, `favicon.ico`, `images/`, `video/` and `web/` into
-`gallery/`, applies `seunglab.py` to the front page there, and moves pyr's old
-FlyWire gallery page aside as `gallery-flywire.html` so the directory index wins
-at `/gallery`, and uncomments the GALLERY link in pyr's navigation, which was
-commented out on every page.
+pyr.ai is a Flask app, not a static host: `main.py` renders a template for each
+route it knows and answers every other path with the home page, so a folder
+dropped into the repo is invisible until it is routed. `mirror.sh` therefore
+copies `*.html`, `favicon.ico`, `images/`, `video/` and `web/` into
+`static/gallery/`, applies `seunglab.py` to the front page there, and runs
+`pyr_routes.py`, which moves the old FlyWire gallery route to `/gallery-flywire`,
+adds two routes serving the folder at `/gallery/` (Flask redirects a bare
+`/gallery` to the slash on its own, which matters because every URL in the site
+is relative), and uncomments the GALLERY link in the nav of every template. Both
+edits are exact-match and idempotent; if `main.py` no longer looks as expected
+the script stops rather than guess. Checked against a stub of the app: `/gallery`
+308s to `/gallery/`, pages and media serve with the right types, a film answers a
+range request with 206, and the catch-all still serves the home page.
