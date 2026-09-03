@@ -1,35 +1,45 @@
-/* pyr.ai home page: the phone layout.
-   Everything here sits inside a max-width query, so the desktop page is untouched.
+/* pyr.ai home page: the phone layout, plus a dark bar and a right-hand menu at
+   every width.
+   The bar and menu rules at the top apply everywhere. The layout rules below
+   them sit inside a max-width query, so the desktop hero and rows are untouched.
    The desktop composition is text at the left over navy, neurons rising on the
    right, a white fade at the foot into the grey section. The phone keeps that
    composition turned upright: text at the top over the navy, the neurons filling
    the lower half, the same fade at the foot. What it removes is the middle-height
    text block, the sliding banner animation, the squeezed two-column rows, and the
    flex row that pyr.css forces on every .w3-row-padding. */
-@media (max-width: 600px) {
-  /* ---- the bar: dark, over a dark hero ---------------------------------- */
-  #myNavbar {
-    background: rgba(4,7,26,.88) !important; color: #fff;
-    backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-    box-shadow: 0 1px 0 rgba(255,255,255,.08) !important;
-  }
-  #myNavbar .w3-bar-item { color: #fff !important; }
-  #myNavbar .w3-button:hover, #myNavbar .w3-button:active, #myNavbar .w3-button:focus {
-    background: rgba(255,255,255,.1) !important; color: #fff !important;
-  }
-  /* ---- the menu: from the right, under the button that opened it -------- */
-  #mySidebar {
-    left: auto !important; right: 0; top: 62px; bottom: auto;
-    width: min(78vw, 320px); height: auto; max-height: calc(100vh - 62px); overflow: auto;
-    background: rgba(4,7,26,.96) !important; box-shadow: -12px 0 40px rgba(0,0,0,.5) !important;
-    animation: pyr-menu-in .32s cubic-bezier(.2,.8,.2,1) both;
-  }
-  @keyframes pyr-menu-in { from { transform: translateX(100%); opacity: .6; } to { transform: none; opacity: 1; } }
-  #mySidebar .w3-bar-item { padding: 14px 22px; font-size: 16px; letter-spacing: .04em;
-    border-bottom: 1px solid rgba(255,255,255,.07); }
-  #mySidebar .w3-bar-item.w3-large { font-size: 14px; color: rgba(255,255,255,.6); }
-  @media (prefers-reduced-motion: reduce) { #mySidebar { animation: none; } }
+/* ---- the bar, at every width: dark, over a dark hero ------------------------ */
+#myNavbar {
+  min-height: 62px;                     /* the menu below hangs from this edge */
+  background: rgba(4,7,26,.88) !important; color: #fff;
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 1px 0 rgba(255,255,255,.08) !important;
+}
+#myNavbar .w3-bar-item { color: #fff !important; }
+#myNavbar .w3-button:hover, #myNavbar .w3-button:active, #myNavbar .w3-button:focus {
+  background: rgba(255,255,255,.1) !important; color: #fff !important;
+}
+/* the Princeton mark is dark type on a transparent image; give it a light chip */
+#myNavbar a[href*="princeton"] {
+  background: #f6f6f6 !important; border-radius: 4px;
+  margin: 8px 8px 8px 4px; padding: 8px 10px !important; line-height: 0;
+}
+#myNavbar a[href*="princeton"]:hover { background: #fff !important; }
 
+/* ---- the menu, wherever the button shows: from the right, under it --------- */
+#mySidebar {
+  left: auto !important; right: 0; top: 62px; bottom: auto;
+  width: min(78vw, 320px); height: auto; max-height: calc(100vh - 62px); overflow: auto;
+  background: rgba(4,7,26,.96) !important; box-shadow: -12px 0 40px rgba(0,0,0,.5) !important;
+  animation: pyr-menu-in .32s cubic-bezier(.2,.8,.2,1) both;
+}
+@keyframes pyr-menu-in { from { transform: translateX(100%); opacity: .6; } to { transform: none; opacity: 1; } }
+#mySidebar .w3-bar-item { padding: 14px 22px; font-size: 16px; letter-spacing: .04em;
+  border-bottom: 1px solid rgba(255,255,255,.07); }
+#mySidebar .w3-bar-item.w3-large { font-size: 14px; color: rgba(255,255,255,.6); }
+@media (prefers-reduced-motion: reduce) { #mySidebar { animation: none; } }
+
+@media (max-width: 600px) {
   /* ---- hero ------------------------------------------------------------- */
   /* #home, not .bgimg-1 alone: the page's own hero rules sit in a <style> in
      the body, later than this sheet, and the id outranks them */
