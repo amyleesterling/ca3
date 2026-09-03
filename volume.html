@@ -94,6 +94,8 @@
                        background:rgba(8,14,24,.82); }
   /* under the top-left tag, clear of the buttons that stack up two rows deep on a phone */
   .embed #hint { bottom:auto; top:36px; left:14px; transform:none; text-shadow:0 1px 6px #04060B; }
+  /* the front page already offers every film for saving; the frame grab stays on the full page */
+  .embed #btn-save { display:none; }
   @media (max-width:520px) { .embed .tag.tr { display:none; } }
 </style>
 </head>
@@ -114,6 +116,7 @@
   <div class="ctl">
     <button type="button" id="btn-top">Look down</button>
     <button type="button" id="btn-edge">Edge on</button>
+    <button type="button" id="btn-cell">Zoom to cell</button>
     <button type="button" id="btn-reset">Reset</button>
     <button type="button" id="btn-spin">Pause spin</button>
     <button type="button" id="btn-fibre">Mossy fiber</button>
@@ -209,10 +212,11 @@ const edges = new THREE.LineSegments(
 root.add(edges);
 
 // ---- the EM cross section, at mid depth ---------------------------------------
+let plate = null;   // kept in reach: the cell view thins it so the cell reads whole
 new THREE.TextureLoader().load("./web/em_plane.jpg", (tex) => {
   tex.colorSpace = THREE.SRGBColorSpace;
   tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
-  const plate = new THREE.Mesh(
+  plate = new THREE.Mesh(
     new THREE.PlaneGeometry(BOX.x, BOX.y),
     new THREE.MeshBasicMaterial({ map: tex, transparent: true, opacity: 0.94,
                                   side: THREE.DoubleSide })
@@ -287,17 +291,20 @@ function place(file, mat, group) {
     document.getElementById("load").classList.remove("gone");
   });
 }
-function toggle(btn, group, files, mat, on, off) {
+function toggle(btn, group, files, mat, on, off, onShow) {
   let loaded = false;
   btn.onclick = () => {
     if (!loaded) { files.forEach((f) => place(f, mat, group)); loaded = true; }
     group.visible = !group.visible;
     btn.textContent = group.visible ? off : on;
+    if (group.visible && onShow) onShow();
   };
 }
 const fibreG = new THREE.Group(); fibreG.visible = false; root.add(fibreG);
+// showing the fiber also flies to the cell: from the block's home view a single
+// fiber is a few pixels wide and the button would seem to do nothing
 toggle(document.getElementById("btn-fibre"), fibreG, ["./web/fibre.glb"],
-       lit(0xF2B84A, 0x9a6a14), "Mossy fiber", "Hide fiber");
+       lit(0xFFC752, 0xb8842a), "Mossy fiber", "Hide fiber", toCell);
 
 const moreG = new THREE.Group(); moreG.visible = false; root.add(moreG);
 fetch("./web/cells.json").then((r) => (r.ok ? r.json() : null)).then((list) => {
@@ -314,12 +321,55 @@ const TARGET = new THREE.Vector3(0, 0, 0);
 // backs off by the ratio of aspects and the whole block, cell included, stays in
 // frame. Wider than 16:10 needs nothing: the block was never height-limited.
 function fit() { return Math.max(1, (16 / 10) / camera.aspect); }
+
+// Camera moves glide rather than cut: the loop eases position and target from
+// where they are to where they are going over a short beat. The first frame,
+// and anyone who asked for reduced motion, gets the cut.
+const slow = matchMedia("(prefers-reduced-motion: reduce)").matches;
+let flight = null;
+function flyTo(pos, target, ms) {
+  if (slow || ms === 0) {
+    camera.position.copy(pos); controls.target.copy(target); controls.update(); flight = null; return;
+  }
+  flight = { p0: camera.position.clone(), t0: controls.target.clone(), p1: pos.clone(), t1: target.clone(),
+             start: performance.now(), ms };
+}
+function fly(now) {
+  if (!flight) return;
+  const u = Math.min(1, (now - flight.start) / flight.ms);
+  const e = 1 - Math.pow(1 - u, 3);                 // ease out
+  camera.position.lerpVectors(flight.p0, flight.p1, e);
+  controls.target.lerpVectors(flight.t0, flight.t1, e);
+  if (u >= 1) flight = null;
+}
+let booted = false;
 function view(x, y, z) {
   const f = fit();
-  camera.position.set(x * f, y * f, z * f);
-  controls.target.copy(TARGET);
-  controls.update();
+  if (plate) plate.material.opacity = 0.94;           // the block views want the section solid
+  flyTo(new THREE.Vector3(x * f, y * f, z * f), TARGET, booted ? 700 : 0);
+  booted = true;
 }
+
+// The cell sits at CELL_OFFSET inside the tilted root, so its place in the world
+// is asked of root rather than assumed. Zooming to it parks the orbit target on
+// the cell, which is what makes every later pinch or wheel zoom toward the cell
+// and not the middle of the block. The spin stops, because the spin turns the
+// root about the block's centre and would carry the cell off screen.
+function cellWorld() { return root.localToWorld(CELL_OFFSET.clone()); }
+function toCell() {
+  const c = cellWorld();
+  // 320 um back, scaled by fit(), frames about 340 um across on any stage: the
+  // 337 um cell fills it edge to edge, with the fiber's contacts beside it. A
+  // pinch from here zooms on the cell, since the target now sits on it.
+  const d = 320 * fit();
+  const eye = c.clone().add(new THREE.Vector3(0.55, 0.62, 0.55).normalize().multiplyScalar(d));
+  // the cell sits mid-slab, so half of it and most of the fiber lie under the
+  // section. Thin the section here; the block views set it back.
+  if (plate) plate.material.opacity = 0.3;
+  spin = false; mark();
+  flyTo(eye, c, 900);
+}
+document.getElementById("btn-cell").onclick = toCell;
 // The home view is a low three-quarter angle, and on a phone held upright that
 // projects the block as a thin slab across a tall frame. Portrait gets a steeper
 // home, so the block's plan fills the height as well as the width.
@@ -384,7 +434,6 @@ function size() {
 addEventListener("resize", size);
 size();
 
-const slow = matchMedia("(prefers-reduced-motion: reduce)").matches;
 if (slow) spin = false;
 
 // A handle for debugging. requestAnimationFrame never fires in a hidden tab, so
@@ -399,8 +448,9 @@ let onScreen = true;
 if ("IntersectionObserver" in window)
   new IntersectionObserver((es) => { onScreen = es[0].isIntersecting; }).observe(stage);
 
-renderer.setAnimationLoop(() => {
+renderer.setAnimationLoop((now) => {
   if (!onScreen) return;
+  fly(now);
   if (spin) root.rotation.z += 0.0016;   // about the slab's own normal, so it stays flat
   controls.update();
   renderer.render(scene, camera);
