@@ -18,13 +18,16 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 CSS = open(os.path.join(HERE, "home_mobile.css"), encoding="utf-8").read()
 MARK_A, MARK_B = "<!-- mobile landing: begin -->", "<!-- mobile landing: end -->"
 BLOCK = f"{MARK_A}\n<style>\n{CSS}</style>\n{MARK_B}"
-ANCHOR = '<link rel="stylesheet" href="/pyr.css" />'
+# The sheet goes in just before </head>: after pyr.css however the template
+# spells that link (the rendered page and the Jinja source differ), and before
+# the body's own hero <style>, which the hero selectors outrank by id.
+ANCHOR = "</head>"
 
 
 def inject(html):
-    html = re.sub(r"\n?" + re.escape(MARK_A) + r".*?" + re.escape(MARK_B), "", html, flags=re.S)
-    assert html.count(ANCHOR) == 1, "pyr.css link not found where expected"
-    return html.replace(ANCHOR, ANCHOR + "\n" + BLOCK)
+    html = re.sub(r"\n?" + re.escape(MARK_A) + r".*?" + re.escape(MARK_B) + r"\n?", "", html, flags=re.S)
+    assert html.count(ANCHOR) == 1, "</head> not found exactly once"
+    return html.replace(ANCHOR, BLOCK + "\n" + ANCHOR)
 
 
 mode = sys.argv[1]
