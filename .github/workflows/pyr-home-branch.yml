@@ -1,0 +1,67 @@
+# Keep a demo branch of pyr.ai's home page, with the phone layout applied.
+#
+# On every change to pyr/home_mobile.css or pyr/home.py on main, this checks
+# out seung-lab/pyr-homepage-static, applies pyr/home.py to its Flask template,
+# and pushes the result to the branch ca3/mobile-landing there (force, since
+# that branch is only ever this job's output). Nothing touches pyr's main:
+# opening the pull request from that branch is a person's call. Uses the same
+# PYR_TOKEN secret as the mirror; without it the job stops with a note.
+name: pyr.ai home, demo branch
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['pyr/home_mobile.css', 'pyr/home.py', '.github/workflows/pyr-home-branch.yml']
+
+concurrency:
+  group: pyr-home-branch
+  cancel-in-progress: false
+
+jobs:
+  branch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check for the pyr.ai token
+        id: token
+        env:
+          T: ${{ secrets.PYR_TOKEN }}
+        run: |
+          if [ -z "$T" ]; then
+            echo "::warning::PYR_TOKEN is not set; see .github/workflows/mirror-pyr.yml"
+            echo "ok=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ok=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Check out this site
+        if: steps.token.outputs.ok == 'true'
+        uses: actions/checkout@v4
+
+      - name: Check out pyr-homepage-static main
+        if: steps.token.outputs.ok == 'true'
+        uses: actions/checkout@v4
+        with:
+          repository: seung-lab/pyr-homepage-static
+          ref: main
+          token: ${{ secrets.PYR_TOKEN }}
+          path: pyr-homepage-static
+
+      - name: Apply the phone layout and push the demo branch
+        if: steps.token.outputs.ok == 'true'
+        run: |
+          python3 pyr/home.py patch "$PWD/pyr-homepage-static"
+          cd pyr-homepage-static
+          git config user.name  "ca3 mirror"
+          git config user.email "amyleerobinson@gmail.com"
+          git checkout -q -B ca3/mobile-landing
+          git add -A templates/index.html
+          if git diff --cached --quiet; then
+            echo "template already carries this layout; nothing to push" | tee -a "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          git commit -q -m "Home page: a layout for phones" \
+                        -m "Phone-only CSS, inlined after pyr.css. Desktop is unchanged." \
+                        -m "From amyleesterling/ca3@${GITHUB_SHA}; preview at https://amyleesterling.github.io/ca3/pyr-home/"
+          git push --force origin ca3/mobile-landing
+          echo "Pushed ca3/mobile-landing to seung-lab/pyr-homepage-static ($(git rev-parse --short HEAD)). Open a pull request from that branch to ship it: https://github.com/seung-lab/pyr-homepage-static/compare/main...ca3/mobile-landing" | tee -a "$GITHUB_STEP_SUMMARY"
