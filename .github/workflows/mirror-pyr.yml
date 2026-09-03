@@ -48,6 +48,18 @@ jobs:
           token: ${{ secrets.PYR_TOKEN }}
           path: pyr-homepage-static
 
+      - name: Show how pyr.ai routes requests
+        if: steps.token.outputs.ok == 'true'
+        run: |
+          # pyr.ai answers every unknown path with the home page, so a folder
+          # dropped into the repo is not reachable until its routing knows about
+          # it. Print the routing files so the mirror can be taught to patch them.
+          cd pyr-homepage-static
+          echo "=== top level"; ls -la
+          for f in app.yaml dispatch.yaml firebase.json main.py server.py app.py requirements.txt package.json; do
+            [ -f "$f" ] && { echo "=== $f"; cat "$f"; echo; }
+          done; true
+
       - name: Mirror, commit, push
         if: steps.token.outputs.ok == 'true'
         run: |
