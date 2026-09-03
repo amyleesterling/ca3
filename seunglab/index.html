@@ -237,7 +237,12 @@
     /* negative TOP margin, because the panel follows the image in the DOM: this
        lifts it onto the foot of the banner. A negative bottom margin, which is
        what was here before, would instead have dragged the citation up under it. */
-    .heropanel { position: static; transform: none; width: auto;
+    /* relative, not static: the panel is a child of figure.hero, whose ::after
+       paints the banner's fade at z-index 1 over the lower 62% of the figure,
+       and on a phone the figure's height includes the panel. Static has no
+       stacking position, so the fade painted over the text and the stats went
+       unreadable. Relative with a higher z-index puts the panel above it. */
+    .heropanel { position: relative; z-index: 2; transform: none; width: auto;
                   margin: -34px 14px 26px; border-radius: 3px; }
   }
   figure.hero figcaption {
@@ -565,8 +570,10 @@
     <div class="inner">
       <p class="heroeyebrow"><s></s>connectomic reconstruction<u></u>mouse ca3</p>
       <h1>CA3 renderings</h1>
-      <p class="lede">Every image on this page is rendered from an electron
-      microscope reconstruction of a single block of mouse hippocampus.</p>
+      <p class="lede">Every image on this page shows real cells from the CA3
+      region of the mouse hippocampus. The dataset has been open for a year, and
+      its first findings and resource overview were published in September 2026
+      in <em>Nature Neuroscience</em>.</p>
       <div class="rule"></div>
       <p class="meta"><span><b>982</b> cells rendered</span><span><b>55,000+</b> mossy fibers traced</span><span><b>25,723</b> synapses</span></p>
       <p class="byline">Rendered by Amy Sterling</p>
