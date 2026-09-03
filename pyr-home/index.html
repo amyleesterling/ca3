@@ -205,12 +205,15 @@
 #myNavbar .w3-button:hover, #myNavbar .w3-button:active, #myNavbar .w3-button:focus {
   background: rgba(255,255,255,.1) !important; color: #fff !important;
 }
-/* the Princeton mark is dark type on a transparent image; give it a light chip */
+/* the Princeton mark is dark type on a transparent image. On the dark bar the
+   link draws the reversed mark instead (assets/princeton-logo-white.png: the
+   same shield, white type), and the original image is kept in place but
+   invisible so the link keeps its size and its alt text. */
 #myNavbar a[href*="princeton"] {
-  background: #f6f6f6 !important; border-radius: 4px;
-  margin: 8px 8px 8px 4px; padding: 8px 10px !important; line-height: 0;
+  background: url("assets/princeton-logo-white.png") center / auto 30px no-repeat !important;
 }
-#myNavbar a[href*="princeton"]:hover { background: #fff !important; }
+#myNavbar a[href*="princeton"] img { opacity: 0; }
+#myNavbar a[href*="princeton"]:hover { background-color: rgba(255,255,255,.1) !important; }
 
 /* ---- the menu, wherever the button shows: from the right, under it --------- */
 #mySidebar {
