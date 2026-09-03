@@ -30,7 +30,7 @@ fi
 # a clean copy every time, so a file deleted here is deleted there too
 rm -rf "$DEST"
 mkdir -p "$DEST"
-cp "$HERE"/*.html "$HERE/favicon.ico" "$DEST/"
+cp "$HERE"/*.html "$HERE/favicon.ico" "$HERE/og.jpg" "$DEST/"
 cp -R "$HERE/images" "$HERE/video" "$HERE/web" "$DEST/"
 
 # the Seung Lab version differs from this site in a few deliberate places;

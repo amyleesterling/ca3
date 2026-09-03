@@ -21,6 +21,13 @@ def rep(a, b, count=1):
     assert n == count, f"anchor found {n}x, expected {count}: {a[:70]!r}"
     s = s.replace(a, b)
 
+# -- the link card: this copy lives at pyr.ai/gallery, so the card says so and the image
+#    is served from there (mirror.sh copies og.jpg alongside the pages) ----------------------
+rep('<meta property="og:url" content="https://amyleesterling.github.io/ca3/">',
+    '<meta property="og:url" content="https://pyr.ai/gallery/">')
+rep('content="https://amyleesterling.github.io/ca3/og.jpg"',
+    'content="https://pyr.ai/gallery/og.jpg"', count=2)
+
 # -- Renders: a title, no making-of paragraph, captions as title + explainer ------------
 rep('''  <h2>Overnight renders</h2>
   <p>Rendered on one workstation in a single night, 103 minutes of GPU time for
