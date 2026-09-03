@@ -54,8 +54,8 @@ rep('''        <p class="k">reconstructed at</p>
         <p class="d">synapses. A mossy fiber does not touch a cell once: its terminal
         wraps a single thorn and makes dozens of contacts there.</p>''')
 rep('data-hud="4.5M triangles"', 'data-hud="182 thorny cells"')
-# the header's triangle count, likewise, gives way to what was traced
-rep('<span><b>124M</b> triangles</span>', '<span><b>55,000+</b> mossy fibers traced</span>')
+# the header's stats row now carries the volume's cell counts on both versions, so
+# only the figure mark keeps a triangle count to swap
 rep('data-hud="982 cells · 124M triangles"', 'data-hud="982 cells · 25,723 synapses"')
 
 # -- the header, after the scifi-ui masthead: a lit wordmark, a hairline that runs wider
