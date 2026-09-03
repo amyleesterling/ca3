@@ -62,11 +62,14 @@ jobs:
         if: steps.token.outputs.ok == 'true'
         run: |
           python3 pyr/home.py patch "$PWD/pyr-homepage-static"
+          # images the sheet refers to (the reversed Princeton mark) ride along
+          mkdir -p pyr-homepage-static/static/assets
+          cp pyr/assets/* pyr-homepage-static/static/assets/
           cd pyr-homepage-static
           git config user.name  "ca3 mirror"
           git config user.email "amyleerobinson@gmail.com"
           git checkout -q -B ca3/mobile-landing
-          git add -A templates/index.html
+          git add -A templates/index.html static/assets
           if git diff --cached --quiet; then
             echo "template already carries this layout; nothing to push" | tee -a "$GITHUB_STEP_SUMMARY"
             exit 0

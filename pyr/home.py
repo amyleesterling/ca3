@@ -55,6 +55,13 @@ if mode == "preview":
     out = os.path.join(HERE, "..", "pyr-home", "index.html")
     os.makedirs(os.path.dirname(out), exist_ok=True)
     open(out, "w", encoding="utf-8").write(html)
+    # images the sheet refers to by a relative path live beside the preview,
+    # as they will beside pyr's pages under static/assets
+    import shutil
+    adir = os.path.join(os.path.dirname(out), "assets")
+    os.makedirs(adir, exist_ok=True)
+    for f in os.listdir(os.path.join(HERE, "assets")):
+        shutil.copy(os.path.join(HERE, "assets", f), adir)
     print(f"preview -> {os.path.normpath(out)} ({len(html)} bytes)")
 elif mode == "patch":
     p = os.path.join(sys.argv[2], "templates", "index.html")
