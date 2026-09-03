@@ -552,13 +552,24 @@
     0%   { box-shadow: 0 0 0 0 rgba(150,212,255,.55), 0 0 22px rgba(62,150,240,.35); border-color: rgba(214,240,255,.9); }
     100% { box-shadow: 0 0 0 10px rgba(150,212,255,0), 0 0 0 rgba(62,150,240,0); } }
   .peek-fig { margin: 0; background: #04060B; }
+  .peek-fig { position: relative; }
   .peek-fig img { display: block; width: 100%; height: auto; max-height: 52dvh; object-fit: cover; }
+  /* the colour key sits on the picture, bottom left, in the site's readout idiom */
+  #peek .peek-key { position: absolute; left: 10px; bottom: 10px; margin: 0; display: flex; flex-wrap: wrap;
+    gap: 5px 12px; padding: 6px 10px; border-radius: 3px; background: rgba(4,6,11,.74);
+    border: 1px solid rgba(112,190,255,.3); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+    font-size: 10px; line-height: 1.3; letter-spacing: .14em; text-transform: uppercase;
+    color: rgba(214,228,246,.92); }
+  #peek .peek-key:empty { display: none; }
+  #peek .peek-key span { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+  #peek .peek-key i { width: 8px; height: 8px; border-radius: 50%; flex: none;
+    box-shadow: 0 0 6px currentColor; background: currentColor; }
   .peek-txt { padding: 16px 20px 20px; }
   .peek-eyebrow { margin: 0 0 8px; font-size: 10px; letter-spacing: .18em; text-transform: uppercase;
     color: #6BA4E6; }
   .peek-eyebrow b { color: #EFF4FB; font-weight: 500; font-size: 13px; letter-spacing: .04em; margin-right: 6px; }
   #peek h3 { margin: 0 0 8px; font-size: 20px; font-weight: 500; letter-spacing: -.01em; }
-  #peek p:last-child { margin: 0; color: #C4CCD8; font-size: 15px; line-height: 1.6; }
+  #peek .peek-txt p:last-child { margin: 0; color: #C4CCD8; font-size: 15px; line-height: 1.6; }
   .peek-x { position: absolute; top: 8px; right: 8px; z-index: 2; width: 34px; height: 34px;
     border-radius: 50%; border: 1px solid rgba(150,212,255,.4); background: rgba(8,14,24,.8);
     color: var(--ink); font: 22px/1 ui-sans-serif, system-ui, sans-serif; cursor: pointer; }
@@ -643,7 +654,7 @@
        row (there is no inhibitory cell in web/). -->
   <dialog id="peek" aria-labelledby="peek-title">
     <button type="button" class="peek-x" aria-label="Close">&times;</button>
-    <figure class="peek-fig"><img id="peek-img" src="" alt=""></figure>
+    <figure class="peek-fig"><img id="peek-img" src="" alt=""><p class="peek-key" id="peek-key"></p></figure>
     <div class="peek-txt">
       <p class="peek-eyebrow"><b id="peek-v"></b> <span id="peek-k"></span></p>
       <h3 id="peek-title"></h3>
@@ -656,6 +667,7 @@
       pyramidal: {
         img: "images/g1_pyramidal-soma-lineup.jpg",
         alt: "Pyramidal cell bodies lined up in the cell layer, one colour each, apical dendrites rising",
+        key: [["#9A6CF0", "pyramidal cells, one colour each"], ["#E8B54A", "mossy fibers"]],
         title: "The principal cells of CA3",
         body: "Excitatory neurons with a cell body in the pyramidal layer and an apical dendrite " +
               "climbing up through the band of mossy fibers. Every one whose cell body sits inside " +
@@ -666,6 +678,7 @@
       inhibitory: {
         img: "images/29_inhibition.jpg",
         alt: "One interneuron in emerald with seven mossy fibers converging on it and its axon reaching pyramidal cells",
+        key: [["#38D39F", "interneuron"], ["#E8B54A", "mossy fibers"], ["#3D8FE8", "pyramidal cells"]],
         title: "The cells that hold the others back",
         body: "Interneurons release GABA and damp the pyramidal cells around them. Among the 229 " +
               "here is a feedforward circuit: mossy fibers drive interneurons that wrap the pyramidal " +
@@ -676,6 +689,7 @@
       fibers: {
         img: "images/g3_sea-of-mossy-fibers.jpg",
         alt: "A dense band of gold mossy fibers threading through the CA3 cell layer",
+        key: [["#E8B54A", "mossy fibers"], ["#3D8FE8", "pyramidal cells"]],
         title: "The axons arriving from the dentate gyrus",
         body: "Mossy fibers are the axons of granule cells in the neighbouring dentate gyrus. More " +
               "than 55,000 of them pass through this block in a single band. Each one ends in a " +
@@ -686,6 +700,7 @@
       inputs: {
         img: "images/09_hero_bouton.jpg",
         alt: "A gold mossy fiber terminal wrapped around a blue thorny excrescence",
+        key: [["#3D8FE8", "pyramidal cell"], ["#E8B54A", "mossy fibers"]],
         title: "Every place a fiber lands on a cell",
         body: "One input is one mossy fiber terminal gripping one thorny excrescence. Counting " +
               "them across the volume gave 25,200, and the count per cell is not uniform: in the " +
@@ -704,6 +719,13 @@
       document.getElementById("peek-k").textContent = btn.querySelector(".k").textContent;
       document.getElementById("peek-title").textContent = d.title;
       document.getElementById("peek-body").innerHTML = d.body;
+      // the colour key: a swatch and a word for each thing the render colours
+      var key = document.getElementById("peek-key");
+      key.textContent = "";
+      (d.key || []).forEach(function (k) {
+        var s = document.createElement("span"), dot = document.createElement("i");
+        dot.style.color = k[0]; s.appendChild(dot); s.appendChild(document.createTextNode(k[1])); key.appendChild(s);
+      });
       from = btn;
       dlg.showModal();
       // grow out of the tile: the origin is the tile's centre in the panel's own frame.
