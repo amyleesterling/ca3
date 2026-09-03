@@ -502,6 +502,37 @@
     color: #6BA4E6; margin-top: 6px; line-height: 1.4;
   }
   .stats .span2 { grid-column: span 2; }
+  /* each tile is a button: tap it and a panel opens with a render of the thing
+     and a few lines on what it is. The corner mark is the only standing hint. */
+  button.stat { display: block; width: 100%; text-align: left; font: inherit; color: inherit;
+    cursor: pointer; appearance: none; -webkit-appearance: none; position: relative;
+    transition: border-color .2s ease, transform .2s ease, box-shadow .2s ease; }
+  button.stat .v, button.stat .k { display: block; }
+  button.stat::after { content: "\2197"; position: absolute; right: 9px; top: 7px;
+    font-size: 11px; color: rgba(150,212,255,.5); transition: color .2s ease; }
+  button.stat:hover, button.stat:focus-visible { border-color: rgba(150,212,255,.62);
+    transform: translateY(-1px); box-shadow: 0 8px 22px rgba(0,0,0,.35); outline: none; }
+  button.stat:hover::after, button.stat:focus-visible::after { color: rgba(214,240,255,.95); }
+  #peek { width: min(640px, calc(100% - 28px)); max-height: calc(100dvh - 28px); padding: 0;
+    border: 1px solid rgba(112,190,255,.34); border-radius: 6px; overflow: hidden;
+    background: linear-gradient(178deg, rgba(13,26,45,.97), rgba(6,12,22,.99));
+    color: var(--ink); box-shadow: 0 28px 80px rgba(0,0,0,.7), 0 0 60px rgba(62,150,240,.14); }
+  #peek::backdrop { background: rgba(4,6,11,.74); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+  #peek[open] { animation: peek-in .26s cubic-bezier(.22,.61,.36,1); }
+  @keyframes peek-in { from { opacity: 0; transform: translateY(8px) scale(.985); } }
+  .peek-fig { margin: 0; background: #04060B; }
+  .peek-fig img { display: block; width: 100%; height: auto; max-height: 52dvh; object-fit: cover; }
+  .peek-txt { padding: 16px 20px 20px; }
+  .peek-eyebrow { margin: 0 0 8px; font-size: 10px; letter-spacing: .18em; text-transform: uppercase;
+    color: #6BA4E6; }
+  .peek-eyebrow b { color: #EFF4FB; font-weight: 500; font-size: 13px; letter-spacing: .04em; margin-right: 6px; }
+  #peek h3 { margin: 0 0 8px; font-size: 20px; font-weight: 500; letter-spacing: -.01em; }
+  #peek p:last-child { margin: 0; color: #C4CCD8; font-size: 15px; line-height: 1.6; }
+  .peek-x { position: absolute; top: 8px; right: 8px; z-index: 2; width: 34px; height: 34px;
+    border-radius: 50%; border: 1px solid rgba(150,212,255,.4); background: rgba(8,14,24,.8);
+    color: var(--ink); font: 22px/1 ui-sans-serif, system-ui, sans-serif; cursor: pointer; }
+  .peek-x:hover, .peek-x:focus-visible { border-color: rgba(214,240,255,.9); outline: none; }
+  @media (prefers-reduced-motion: reduce) { #peek[open] { animation: none; } button.stat { transition: none; } }
   .volfig { margin: 26px 0 10px; }
   /* the block is the live scene from volume.html, framed; the still it replaced is
      kept in that page as the no-WebGL fallback */
@@ -609,12 +640,100 @@
   </div>
 
   <div class="stats">
-    <div class="stat"><div class="v">1,815</div><div class="k">pyramidal cells</div></div>
-    <div class="stat"><div class="v">229</div><div class="k">inhibitory cells</div></div>
-    <div class="stat"><div class="v">55,000+</div><div class="k">mossy fibers</div></div>
-    <div class="stat"><div class="v">25,200</div><div class="k">mossy fiber inputs mapped</div></div>
-    <div class="stat span2"><div class="v">1 &times; 1 &times; 0.1 mm</div><div class="k">of tissue, imaged whole</div></div>
+    <button type="button" class="stat" data-peek="pyramidal" aria-haspopup="dialog"><span class="v">1,815</span><span class="k">pyramidal cells</span></button>
+    <button type="button" class="stat" data-peek="inhibitory" aria-haspopup="dialog"><span class="v">229</span><span class="k">inhibitory cells</span></button>
+    <button type="button" class="stat" data-peek="fibers" aria-haspopup="dialog"><span class="v">55,000+</span><span class="k">mossy fibers</span></button>
+    <button type="button" class="stat" data-peek="inputs" aria-haspopup="dialog"><span class="v">25,200</span><span class="k">mossy fiber inputs mapped</span></button>
+    <button type="button" class="stat span2" data-peek="block" aria-haspopup="dialog"><span class="v">1 &times; 1 &times; 0.1 mm</span><span class="k">of tissue, imaged whole</span></button>
   </div>
+
+  <!-- Tap a stat and this opens: one render of the thing, and what it is. The
+       long version of this idea is a live mesh per tile, the way whatisabrain's
+       Meet a Neuron cards work; that waits on meshes we do not have for every
+       row (there is no inhibitory cell in web/). -->
+  <dialog id="peek" aria-labelledby="peek-title">
+    <button type="button" class="peek-x" aria-label="Close">&times;</button>
+    <figure class="peek-fig"><img id="peek-img" src="" alt=""></figure>
+    <div class="peek-txt">
+      <p class="peek-eyebrow"><b id="peek-v"></b> <span id="peek-k"></span></p>
+      <h3 id="peek-title"></h3>
+      <p id="peek-body"></p>
+    </div>
+  </dialog>
+  <script>
+  (function () {
+    var PEEK = {
+      pyramidal: {
+        img: "images/g1_pyramidal-soma-lineup.jpg",
+        alt: "Pyramidal cell bodies lined up in the cell layer, one colour each, apical dendrites rising",
+        title: "The principal cells of CA3",
+        body: "Excitatory neurons with a cell body in the pyramidal layer and an apical dendrite " +
+              "climbing up through the band of mossy fibers. Every one whose cell body sits inside " +
+              "this block was reconstructed and classified: 1,815 of them, split between thorny " +
+              "cells, whose dendrites carry the elaborate spines mossy fibers land on, and sparsely " +
+              "thorny cells, which carry few."
+      },
+      inhibitory: {
+        img: "images/29_inhibition.jpg",
+        alt: "One interneuron in emerald with seven mossy fibers converging on it and its axon reaching pyramidal cells",
+        title: "The cells that hold the others back",
+        body: "Interneurons release GABA and damp the pyramidal cells around them. Among the 229 " +
+              "here is a feedforward circuit: mossy fibers drive interneurons that wrap the pyramidal " +
+              "cell bodies, and that inhibition lands selectively, on thorny cells far more than on " +
+              "sparsely thorny ones. The one rendered here puts 2.49 times more inhibition on each " +
+              "thorny cell it reaches."
+      },
+      fibers: {
+        img: "images/g3_sea-of-mossy-fibers.jpg",
+        alt: "A dense band of gold mossy fibers threading through the CA3 cell layer",
+        title: "The axons arriving from the dentate gyrus",
+        body: "Mossy fibers are the axons of granule cells in the neighbouring dentate gyrus. More " +
+              "than 55,000 of them pass through this block in a single band. Each one ends in a " +
+              "handful of giant terminals, and a single terminal can make dozens of synapses onto " +
+              "one thorny excrescence: few inputs, each enormous, is the arrangement that makes " +
+              "this synapse famous."
+      },
+      inputs: {
+        img: "images/09_hero_bouton.jpg",
+        alt: "A gold mossy fiber terminal wrapped around a blue thorny excrescence",
+        title: "Every place a fiber lands on a cell",
+        body: "One input is one mossy fiber terminal gripping one thorny excrescence. Counting " +
+              "them across the volume gave 25,200, and the count per cell is not uniform: in the " +
+              "304-cell sample rendered below it runs from 0 to 235 with a median of 41, and it " +
+              "rises along the proximodistal axis of the layer. That gradient is the finding the " +
+              "paper is named for."
+      },
+      block: {
+        img: "images/21_volume.png",
+        alt: "Wireframe of the 1 by 1 by 0.1 mm block with one pyramidal cell drawn inside it for scale",
+        title: "The block itself",
+        body: "A 1 &times; 1 &times; 0.1 mm piece of mouse CA3, cut into sections, imaged whole by " +
+              "electron microscopy and reassembled into one 3D volume. Every neuron with a cell " +
+              "body inside it was reconstructed and classified, and the mossy fibers crossing it " +
+              "were traced, from circuits down to single vesicles. The block turns in 3D just below."
+      }
+    };
+    var dlg = document.getElementById("peek");
+    if (!dlg || !dlg.showModal) return;   // no <dialog>: the tiles stay plain numbers
+    var img = document.getElementById("peek-img");
+    function open(btn) {
+      var d = PEEK[btn.dataset.peek]; if (!d) return;
+      img.src = d.img; img.alt = d.alt;
+      document.getElementById("peek-v").textContent = btn.querySelector(".v").textContent;
+      document.getElementById("peek-k").textContent = btn.querySelector(".k").textContent;
+      document.getElementById("peek-title").textContent = d.title;
+      document.getElementById("peek-body").innerHTML = d.body;
+      dlg.showModal();
+    }
+    document.querySelectorAll(".stat[data-peek]").forEach(function (b) {
+      b.addEventListener("click", function () { open(b); });
+    });
+    dlg.querySelector(".peek-x").addEventListener("click", function () { dlg.close(); });
+    // a click on the backdrop lands on the dialog element itself, not its children
+    dlg.addEventListener("click", function (e) { if (e.target === dlg) dlg.close(); });
+    dlg.addEventListener("close", function () { img.removeAttribute("src"); });
+  })();
+  </script>
 
   <figure class="volfig" data-hud="1 x 1 x 0.1 mm block">
     <div class="volstage"><iframe src="volume.html?embed" loading="lazy"
