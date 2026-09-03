@@ -79,18 +79,21 @@
   @media (prefers-reduced-motion: reduce) { #hint, #load { transition:none; } }
 
   /* Embedded in the front page the stage is the whole viewport, the copy is the
-     host's job, and the controls ride inside the corner. Vertical touch drags are
-     left to the browser so a thumb can scroll past the block; sideways turns it. */
+     host's job, and the controls ride inside the corner. A finger on the block
+     turns the block, full stop: an earlier version left vertical drags to the
+     browser so a thumb could scroll past, but the browser decides scroll or turn
+     from the first few pixels, and most real drags have enough vertical in them
+     to be taken as a scroll. The page is scrolled from outside the block. */
   .embed body { overflow:hidden; }
   .embed .wrap { max-width:none; padding:0; }
   .embed h1, .embed .lede, .embed .note, .embed .wrap > p, .embed footer { display:none; }
   .embed #stage { aspect-ratio:auto; height:100vh; height:100dvh; border:0; border-radius:0;
-                  touch-action:pan-y pinch-zoom; }
-  .embed #stage canvas { touch-action:pan-y pinch-zoom !important; }
+                  touch-action:none; }
   .embed .ctl { position:fixed; z-index:2; left:10px; bottom:10px; margin:0; gap:6px; }
   .embed .ctl button { font-size:10px; padding:5px 9px; letter-spacing:.09em;
                        background:rgba(8,14,24,.82); }
-  .embed #hint { bottom:48px; text-shadow:0 1px 6px #04060B; }
+  /* under the top-left tag, clear of the buttons that stack up two rows deep on a phone */
+  .embed #hint { bottom:auto; top:36px; left:14px; transform:none; text-shadow:0 1px 6px #04060B; }
   @media (max-width:520px) { .embed .tag.tr { display:none; } }
 </style>
 </head>
@@ -187,10 +190,8 @@ if (embedded) {
   // OrbitControls returns before preventDefault and the event reaches the host.
   controls.enableZoom = false;
   controls.enablePan = false;
-  // OrbitControls sets touch-action:none on the canvas in its constructor, which
-  // would swallow vertical thumb scrolls; the stylesheet wins it back with
-  // !important but the inline value is cleared too, for browsers that differ.
-  renderer.domElement.style.touchAction = "";
+  // touch stays with OrbitControls' own touch-action:none on the canvas: one
+  // finger turns the block, two fingers do nothing (zoom and pan are off)
 }
 
 // Data z is the thin 100 um axis. three.js is Y up, so the whole assembly is turned
@@ -310,17 +311,28 @@ fetch("./web/cells.json").then((r) => (r.ok ? r.json() : null)).then((list) => {
 
 // ---- views -----------------------------------------------------------------------
 const TARGET = new THREE.Vector3(0, 0, 0);
+// The views were framed for a 16:10 stage. A narrower stage, a phone held
+// upright above all, shows less width for the same distance, so the camera
+// backs off by the ratio of aspects and the whole block, cell included, stays in
+// frame. Wider than 16:10 needs nothing: the block was never height-limited.
+function fit() { return Math.max(1, (16 / 10) / camera.aspect); }
 function view(x, y, z) {
-  camera.position.set(x, y, z);
+  const f = fit();
+  camera.position.set(x * f, y * f, z * f);
   controls.target.copy(TARGET);
   controls.update();
 }
+// The home view is a low three-quarter angle, and on a phone held upright that
+// projects the block as a thin slab across a tall frame. Portrait gets a steeper
+// home, so the block's plan fills the height as well as the width.
 const HOME = [900, 620, 900];
-view(...HOME);
+const HOME_TALL = [640, 1150, 640];
+function home() { return camera.aspect < 1 ? HOME_TALL : HOME; }
+view(...home());
 
 document.getElementById("btn-top").onclick   = () => { spin = false; view(0, 1500, 1); mark(); };
 document.getElementById("btn-edge").onclick  = () => { spin = false; view(1500, 40, 0); mark(); };
-document.getElementById("btn-reset").onclick = () => { view(...HOME); mark(); };
+document.getElementById("btn-reset").onclick = () => { view(...home()); mark(); };
 const spinBtn = document.getElementById("btn-spin");
 spinBtn.onclick = () => {
   spin = !spin;
@@ -368,6 +380,8 @@ function size() {
   camera.aspect = r.width / r.height;
   camera.updateProjectionMatrix();
   renderer.setSize(r.width, r.height, false);
+  // reframe for the new aspect, but only until the visitor has taken the camera
+  if (!touched) view(...home());
 }
 addEventListener("resize", size);
 size();

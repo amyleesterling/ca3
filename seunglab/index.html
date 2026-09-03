@@ -508,7 +508,9 @@
   .volstage { position: relative; margin: 26px 0; }
   .volstage iframe { display: block; width: 100%; aspect-ratio: 16/10; border: 0;
     border-radius: 4px; background: #04060B; box-shadow: 0 0 0 1px rgba(112,190,255,.22); }
-  @media (max-width: 600px) { .volstage iframe { aspect-ratio: 4/3; } }
+  /* on a phone the block takes most of the screen: a 4:3 box left a small
+     picture under six buttons, and a thumb had nowhere to turn it */
+  @media (max-width: 600px) { .volstage iframe { aspect-ratio: auto; height: min(82vh, 640px); } }
 
   @media (prefers-reduced-motion: reduce) {
         .holoframe img, .holoframe video, .holo, h2::before { transition: none; }
@@ -618,7 +620,7 @@
     <div class="volstage"><iframe src="volume.html?embed" loading="lazy"
       title="The reconstructed tissue block in 3D, with one pyramidal cell inside it. Drag to turn."></iframe></div>
     <figcaption>The block that was cut, imaged and reconstructed: <b>1 x 1 x 0.1 mm</b>
-    of mouse CA3, live. Drag sideways to turn it. One pyramidal cell is drawn inside
+    of mouse CA3, live. Drag to turn it. One pyramidal cell is drawn inside
     at true relative scale. Nearly two thousand of them are in there, threaded through
     by more than fifty five thousand mossy fibers. The
     <a href="volume.html">full screen version</a> adds zoom.</figcaption>
