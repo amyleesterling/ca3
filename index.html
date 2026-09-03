@@ -47,8 +47,10 @@
     box-shadow: 0 10px 28px rgba(0,0,0,.55), 0 0 0 1px rgba(112,190,255,.18); }
   .cite .cover:hover img { box-shadow: 0 10px 28px rgba(0,0,0,.55), 0 0 0 1px rgba(150,212,255,.6); }
   .cite .txt { min-width: 0; }
+  /* stacked, the cover runs the full width of the text under it, so its left edge
+     and the text's left edge are the same line */
   @media (max-width: 640px) { .cite { flex-direction: column; align-items: stretch; }
-    .cite .cover { width: min(72%, 260px); margin: 4px auto 6px; } }
+    .cite .cover { width: 100%; margin: 2px 0 8px; } }
   .cite a { color: var(--accent); text-decoration: none; }
   .cite a:hover { text-decoration: underline; }
   .cite .t { color: var(--ink); display: block; margin-bottom: 6px; }
