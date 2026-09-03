@@ -51,7 +51,30 @@
     </style>
 
     <link rel="stylesheet" href="https://pyr.ai/pyr.css" />
-<!-- mobile landing: begin -->
+
+    <!-- Google tag (gtag.js) -->
+    <script
+      async
+      src="https://www.googletagmanager.com/gtag/js?id=G-CQFQDNDHNZ"
+    ></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag() {
+        dataLayer.push(arguments);
+      }
+      gtag("js", new Date());
+
+      gtag("config", "G-CQFQDNDHNZ");
+    </script>
+    <script src="https://pyr.ai/marked.min.js"></script>
+    <script defer>
+      document.addEventListener("DOMContentLoaded", () => {
+        document.querySelectorAll(".markdown").forEach((element) => {
+          element.innerHTML = marked.parse(element.innerHTML);
+        });
+      });
+    </script>
+  <!-- mobile landing: begin -->
 <style>
 /* pyr.ai home page: the phone layout.
    Everything here sits inside a max-width query, so the desktop page is untouched.
@@ -124,30 +147,7 @@
 }
 </style>
 <!-- mobile landing: end -->
-
-    <!-- Google tag (gtag.js) -->
-    <script
-      async
-      src="https://www.googletagmanager.com/gtag/js?id=G-CQFQDNDHNZ"
-    ></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag() {
-        dataLayer.push(arguments);
-      }
-      gtag("js", new Date());
-
-      gtag("config", "G-CQFQDNDHNZ");
-    </script>
-    <script src="https://pyr.ai/marked.min.js"></script>
-    <script defer>
-      document.addEventListener("DOMContentLoaded", () => {
-        document.querySelectorAll(".markdown").forEach((element) => {
-          element.innerHTML = marked.parse(element.innerHTML);
-        });
-      });
-    </script>
-  </head>
+</head>
 
   <body>
     <!-- Navbar (sit on top) -->
