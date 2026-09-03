@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Pyr</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- Favicon -->
+    <link rel="icon" href="https://pyr.ai/assets/pyr-icon-simple.svg" />
+    <link rel="preload" href="https://pyr.ai/assets/fly-brain-grad.jpg" as="image" />
+
+    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css" />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css?family=Raleway"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+      integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z"
+      crossorigin="anonymous"
+    />
+
+    <style>
+      body,
+      h1,
+      h2,
+      h3,
+      h4,
+      h5,
+      h6 {
+        font-family: "Roboto", sans-serif;
+      }
+
+      body,
+      html {
+        line-height: 1.8;
+        height: 100%;
+      }
+
+      .w3-bar .w3-button {
+        padding: 16px;
+      }
+
+      .w3-top {
+        z-index: 3 !important;
+      }
+    </style>
+
+    <link rel="stylesheet" href="https://pyr.ai/pyr.css" />
+<!-- mobile landing: begin -->
+<style>
+/* pyr.ai home page: the phone layout.
+   Everything here sits inside a max-width query, so the desktop page is untouched.
+   The desktop composition is text at the left over navy, neurons rising on the
+   right, a white fade at the foot into the grey section. The phone keeps that
+   composition turned upright: text at the top over the navy, the neurons filling
+   the lower half, the same fade at the foot. What it removes is the middle-height
+   text block, the sliding banner animation, the squeezed two-column rows, and the
+   flex row that pyr.css forces on every .w3-row-padding. */
+@media (max-width: 600px) {
+  /* ---- hero ------------------------------------------------------------- */
+  /* #home, not .bgimg-1 alone: the page's own hero rules sit in a <style> in
+     the body, later than this sheet, and the id outranks them */
+  #home.bgimg-1 {
+    min-height: 100svh;
+    background-size: auto 100%;
+    /* the slice the desktop shows at rest: the green, blue and gold cells. The
+       far right end carries a mirrored watermark from the banner's tiling. */
+    background-position: 66% 0;
+    background-repeat: no-repeat;
+    animation: none;
+  }
+  /* a dark veil over the upper part so the title reads across the neurons */
+  #home.bgimg-1::before {
+    content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: linear-gradient(180deg, rgba(3,6,40,.82) 0%, rgba(3,6,40,.66) 38%, rgba(3,6,40,.2) 60%, rgba(3,6,40,0) 72%);
+  }
+  .bgimg-1 .w3-display-left {
+    top: 0 !important; transform: none !important;
+    left: 0; right: 0; margin: 0 !important;
+    padding: 96px 22px 0 !important;  /* the nav bar is fixed over the top 62px */
+  }
+  .bgimg-1 .w3-display-left br { display: none; }
+  .bgimg-1 .w3-display-left .w3-xlarge {
+    display: block; font-size: 34px; line-height: 1.12; font-weight: 500;
+    letter-spacing: -.01em; margin: 0 0 14px; text-shadow: 0 2px 12px rgba(2,3,7,.7);
+  }
+  .bgimg-1 .w3-display-left .w3-large {
+    max-width: 30ch !important; font-size: 17px !important; line-height: 1.5;
+    color: rgba(236,242,255,.92);
+  }
+  .bgimg-1 .w3-display-left .w3-button {
+    display: block; width: 100%; box-sizing: border-box; text-align: center;
+    margin: 22px 0 16px !important; padding: 15px 18px !important;
+    font-size: 17px !important; border-radius: 6px;
+    box-shadow: 0 10px 28px rgba(0,0,0,.35);
+  }
+  .bgimg-1 .w3-display-left a[href="https://pyr.ai/principles"],
+  .bgimg-1 .w3-display-left a[href="https://pyr.ai/tos"] {
+    display: inline-block; margin: 0 18px 0 0; font-size: 14px;
+    color: rgba(200,216,245,.95); text-shadow: 0 1px 6px rgba(2,3,7,.7);
+  }
+  /* the icons repeat in the footer; up here they sat on top of the render */
+  .bgimg-1 .w3-display-bottomleft { display: none; }
+
+  /* ---- at a glance ------------------------------------------------------ */
+  #about { padding: 44px 16px 26px !important; }
+  #about h2 { font-size: 13px; letter-spacing: .28em; margin: 0 0 6px; }
+  #about .w3-padding-32 { padding: 12px 0 !important; }
+  #about .w3-third { padding: 14px 0; }
+  #about .w3-third .w3-xxlarge { font-size: 30px !important; font-weight: 500; }
+
+  /* ---- the rows: picture above its text, not beside it ---------------- */
+  .w3-row-padding { display: block !important; }
+  .w3-row-padding .w3-col.m6 { width: 100%; float: none; }
+  .w3-row-padding .w3-image { max-width: min(100%, 360px) !important; }
+  .w3-row-padding .w3-col[align="center"] { margin-bottom: 18px; }
+  .w3-container.w3-light-grey[style*="padding:45px"] { padding: 26px 18px !important; }
+  .w3-container.w3-light-grey h3 { margin-top: 4px; }
+}
+</style>
+<!-- mobile landing: end -->
+
+    <!-- Google tag (gtag.js) -->
+    <script
+      async
+      src="https://www.googletagmanager.com/gtag/js?id=G-CQFQDNDHNZ"
+    ></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag() {
+        dataLayer.push(arguments);
+      }
+      gtag("js", new Date());
+
+      gtag("config", "G-CQFQDNDHNZ");
+    </script>
+    <script src="https://pyr.ai/marked.min.js"></script>
+    <script defer>
+      document.addEventListener("DOMContentLoaded", () => {
+        document.querySelectorAll(".markdown").forEach((element) => {
+          element.innerHTML = marked.parse(element.innerHTML);
+        });
+      });
+    </script>
+  </head>
+
+  <body>
+    <!-- Navbar (sit on top) -->
+    <div class="w3-top">
+      <div class="w3-bar w3-white w3-card" id="myNavbar">
+        <a href="/" class="w3-bar-item w3-button w3-wide"
+          ><img src="https://pyr.ai/assets/pyr-icon-200w.png" width="20px;" /> HOME</a
+        >
+        <!-- Right-sided navbar links -->
+        <div class="w3-right w3-hide-small">
+          <!-- <a href="https://pyr.ai/about" class="w3-bar-item w3-button"> ABOUT</a> -->
+          <!-- <a href="https://pyr.ai/apps" class="w3-bar-item w3-button"> APPS</a> -->
+          <a href="https://pyr.ai/consortium" class="w3-bar-item w3-button"> CONSORTIUM</a>
+          <a href="https://pyr.ai/ca3_access" class="w3-bar-item w3-button"
+            >CA3: Request Access</a
+          >
+          <a href="https://blog.pyr.ai" class="w3-bar-item w3-button">Blog</a>
+          <a href="https://pyr.ai/gallery" class="w3-bar-item w3-button"> GALLERY</a>
+          <!-- <a href="https://pyr.ai/for_media" class="w3-bar-item w3-button"> MEDIA</a> -->
+          <a href="https://princeton.edu" class="w3-bar-item w3-button">
+            <img height="30px;" src="https://pyr.ai/assets/princeton-logo.png"
+          /></a>
+        </div>
+        <!-- Hide right-floated links on small screens and replace them with a menu icon -->
+
+        <a
+          href="javascript:void(0)"
+          class="w3-bar-item w3-button w3-right w3-hide-large w3-hide-medium"
+          onclick="w3_open()"
+        >
+          <i class="fa fa-bars"></i>
+        </a>
+      </div>
+    </div>
+
+    <!-- Sidebar on small screens when clicking the menu icon -->
+    <nav
+      class="w3-sidebar w3-bar-block w3-black w3-card w3-animate-left w3-hide-medium w3-hide-large"
+      style="display: none"
+      id="mySidebar"
+    >
+      <a
+        href="javascript:void(0)"
+        onclick="w3_close()"
+        class="w3-bar-item w3-button w3-large w3-padding-16"
+        >Close ×</a
+      >
+      <a href="/" class="w3-bar-item w3-button"> HOME</a>
+      <!-- <a href="https://pyr.ai/about" class="w3-bar-item w3-button"> ABOUT</a> -->
+      <!-- <a href="https://pyr.ai/apps" class="w3-bar-item w3-button"> APPS</a> -->
+      <a href="https://pyr.ai/consortium" class="w3-bar-item w3-button"> CONSORTIUM</a>
+      <a href="https://pyr.ai/ca3_access" class="w3-bar-item w3-button">
+        CA3: Request Access
+      </a>
+      <a href="https://blog.pyr.ai" class="w3-bar-item w3-button">Blog</a>
+      <a href="https://pyr.ai/gallery" class="w3-bar-item w3-button"> GALLERY</a>
+      <!-- <a href="https://pyr.ai/for_media" class="w3-bar-item w3-button"> MEDIA</a> -->
+      <a
+        href="https://princeton.edu"
+        class="w3-bar-item w3-button"
+        style="background: #fafafa"
+      >
+        <img height="30px;" src="https://pyr.ai/assets/princeton-logo.png"
+      /></a>
+    </nav>
+
+    
+
+<script>
+  // Forwarding rule for hashtags to keep legacy site logic working
+  if (window.location.hash) {
+    var hash = window.location.hash.substring(1); //Puts hash in variable, and removes the # character
+    if (hash.startsWith('links/')) {
+      // redirect to Proofreading FlyWire site for legacy link management logic
+      window.location.href = "https://edit.flywire.ai/#" + hash;
+    }
+  }
+</script>
+<!-- BANNER HEADER -->
+<style>
+@keyframes animatedBackground {
+    from {
+      background-position: 30% 0;
+    }
+    to {
+      background-position: 70% 0;
+    }
+  }
+  /* Full height image header */
+  .bgimg-1 {
+    min-width: 100%;
+    min-height: 100%;
+    background-color: #f1f1f1;
+    background-image: url("https://pyr.ai/assets/pyr_banner_7.png");
+    background-size: cover;
+    background-position: 0px 0px;
+    background-repeat: repeat-x;
+    animation: animatedBackground 300s cubic-bezier(0.15, 0, 0.85, 1) infinite alternate;
+  }
+
+  .signpost-center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+</style>
+
+<header class="bgimg-1 w3-display-container" id="home">
+  <div class="w3-display-left w3-text-white" style="padding:18px; margin-left: 5%;" >
+    <span class="w3-xxlarge w3-hide-small">Mouse Hippocampal CA3 Dataset</span><br>
+    <span class="w3-xlarge w3-hide-large w3-hide-medium"">Mouse Hippocampal CA3 Dataset</span><br>
+    <div class="w3-large" style="max-width: 4.8in; font-size: 20px; text-shadow: 2px 2px 4px #020307;">
+      AI-segmented neurons are now open to proofreading and annotation. Click below to access the dataset.
+    </div>
+    <br>
+    <div>
+      <a href="https://codex.flywire.ai/research/mouse_ca3_explorer"
+        class="w3-button w3-blue w3-padding-large w3-large w3-margin-top w3-hover-opacity-off" style="margin-right: 15px;">Explore Hippocampal Neurons</a>
+      <br>
+      <br>
+      <a href="https://pyr.ai/principles">Dataset Principles</a>
+      <br>
+      <a href="https://pyr.ai/tos">Terms & Privacy</a>
+
+
+    </div>
+    <!---->
+    <!--
+    <p>
+      <a href="https://blog.pyr.ai/2022/10/12/how-to-use-flywire/" >Learn How to Use FlyWire</a>
+    </p>
+    -->
+
+  </div>
+  <div class="w3-display-bottomleft w3-text-grey w3-large" style="padding:24px 48px">
+    <a href="https://blog.pyr.ai"><i class="fa fa-blog w3-hover-opacity"></i></a>
+    <a href="https://x.com/pyrgame"><i class="fa-brands fa-twitter w3-hover-opacity"></i></a>
+    <a href="mailto:flywire@princeton.edu"><i class="fa fa-envelope w3-hover-opacity"></i></a>
+  </div>
+</header>
+
+<!-- At A Glance -->
+<div class="w3-container w3-light-grey" style="padding:68px 16px; align-content: center;" id="about">
+  <h2 class="w3-center" style="align-content: center; color: #7086a0;">AT A GLANCE</h2>
+
+  <div class="w3-container w3-row w3-center w3-padding-32">
+    <div class="w3-third">
+      <span class="w3-xxlarge">2,000 Neurons</span>
+      <br>Proofread by experts
+    </div>
+    <div class="w3-third">
+      <span class="w3-xxlarge">36M+ Synapses</span>
+    </div>
+    <div class="w3-third">
+      <span class="w3-xxlarge">28K Edits</span>
+    </div>
+  </div>
+
+</div>
+
+<!-- FW OVERVIEW -->
+<div class="w3-container w3-light-grey" style="padding:45px 18px">
+    <hr>
+  <br><br>
+  <div class="w3-row-padding">
+    <div class="w3-col m6" align="center">
+      <img class="w3-image w3-round-large" src="https://pyr.ai/assets/pyr_website_2.png" alt="">
+    </div>
+
+    <div class="w3-col m6">
+      <h3>Overview</h3>
+      <p>
+        The hippocampus is a brain region important for memory and spatial navigation. The CA3 area, a subregion of the hippocampus, is crucial for pattern completion, spatial coding, and associative memory. Since 2021, we have begun acquiring and reconstructing a volume (0.1 mm3) of the CA3 area in the mouse hippocampus. Pyr is an online community for proofreading, annotation, and scientific discovery in the CA3 dataset. As of October 2024, the majority of neurons with cell bodies in the volume have been proofread. The CA3 dataset is part of the NIH BRAIN CONNECTS project, which aims to acquire and reconstruct a large-scale connectomic volume that includes all the main areas of the mouse hippocampal formation. 
+      </p>
+
+    </div>
+  </div>
+</div>
+
+<!-- Consortium -->
+<div class="w3-container w3-light-grey" style="padding:45px 18px">
+  <div class="w3-row-padding">
+    <div class="w3-col m6" align="center">
+      <img class="w3-image w3-round-large" src="https://pyr.ai/assets/pyr_website_3.png" alt="">
+    </div>
+    <div class="w3-col m6">
+      <h3>Consortium</h3>
+      <p>Community of neurobiologists, computer scientists, proofreaders, and citizen scientists who map and label neurons in the CA3 dataset. Join Pyr and contribute community data for your lab to appear.
+      </p>
+      <p><a href="https://pyr.ai/consortium" class="w3-button"><i class="fa fa-users"></i> Meet the Consortium</a></p>
+    </div>
+  </div>
+</div>
+
+<!-- Funders and Founders -->
+<div class="w3-container w3-light-grey" style="padding:45px 18px; ">
+  <div class="w3-row-padding">
+    <div class="w3-col m6" align="center">
+      <img class="w3-image w3-round-large" align="center" src="https://pyr.ai/assets/braini-logo.png" alt="Brain Initiative"
+        width="275" height="auto">
+    </div>
+    <div class="w3-col m6">
+      <br>
+      <h3>Funders</h3>
+      <p>
+        Core CA3 dataset support came from National Institutes of Health (NIH), Princeton Neuroscience Institute (PNI), Simons Foundation, and Google. The acquisition infrastructure was supported by a NIH instrumentation program (S10 OD023602) and Simons Foundation. Zhihao Zheng was supported by a Pathway to Independence Award (K99 NS135650). The Seung lab receives support with compute resources from Amazon and Google.
+      </p>
+    </div>
+  </div>
+</div>
+
+<div class="w3-container w3-light-grey" style="padding:45px 18px; ">
+  <div class="w3-row-padding">
+    <div class="w3-col m6" align="center">
+      <img class="w3-image w3-round-large" align="center" src="https://pyr.ai/assets/brain-connects.png" alt="Brain Connects"
+        width="275" height="auto">
+    </div>
+    <div class="w3-col m6">
+      <p>
+        The Seung and Tank labs were supported by the NIH BRAIN Initiative (U19 NS104648, U19 NS132720, RF1 MH123400) and CONNECTS programs (UM1 NS132250).  Future mouse hippocampal formation datasets are being made possible by the BRAIN CONNECTS program.
+      </p>
+    </div>
+  </div>
+</div>
+
+
+<!-- History -->
+<!-- <div class="w3-container w3-light-grey w3-padding-64">
+  <hr>
+  <br>
+  <div class="w3-row-padding">
+    <h1 class="w3-center" style="align-content: center; color: #7086a0;">Creating the FlyWire Brain Connectome</h1>
+    <br>
+    <div>
+      <p>
+        FlyWire’s brain connectome was created through contributions of hundreds of scientists at numerous institutions
+        who make up the FlyWire Consortium. The high-resolution image data was acquired in the Bock lab at Janelia Research
+        Campus and aligned by the Bock and Saalfeld labs at Janelia Research Campus. The Murthy and Seung labs at Princeton
+        University then re-aligned and automatically reconstructed all the cells. The Murthy and Seung labs made the reconstructions
+        openly available for large-scale proofreading by creating the FlyWire platform and establishing the FlyWire Consortium;
+        the Murthy and Seung labs led the Consortium effort. The FlyWire platform was built on a proofreading and annotation
+        infrastructure developed in collaboration between Princeton University and the Allen Institute for Brain Science, who
+        continue to manage the platform jointly. The main 3D data viewer of FlyWire was developed by Google Research. At this
+        stage, FlyWire incorporated synapse predictions from the Funke and Saalfeld labs at Janelia and neurotransmitter
+        information provided by the Funke lab at Janelia and the Jefferis Lab at MRC Laboratory of Molecular Biology. Proofreading
+        and annotation was carried out by hundreds of members of the FlyWire Consortium, including citizen scientists. The majority
+        of the proofreading was carried out and orchestrated by the Murthy and Seung labs at Princeton University, the Jefferis
+        Lab at MRC Laboratory of Molecular Biology and the Bock lab at University of Vermont who worked with SixEleven and
+        ariadne.ai for proofreading services. The Jefferis and Bock labs curated hierarchical annotations for all neurons in
+        the brain and detailed cell typings for all neurons in the central brain. The Murthy and Seung labs created cell type
+        annotations for all intrinsic neurons of the optic lobes. The Murthy and Seung labs developed Codex (Connectome Data Explorer)
+        for sharing and exploring the connectome. Groups at Princeton University, MRC Laboratory of Molecular Biology,
+        the Allen Institute for Brain Science, Harvard Medical School, and the Larner College of Medicine at the University of
+        Vermont built additional programmatic and interactive tools for accessing the resource.
+      </p>
+    </div>
+  </div>
+</div> -->
+
+
+<!-- Publications -->
+<div class="w3-container" style="padding:18px 18px">
+  <div class="w3-row-padding">
+    <!-- <div>
+      <br>
+      <h3>Publications Utilizing FlyWire (see <a href="https://pyr.ai/guidelines">citation guidelines</a>)</h3>
+      <ul>
+        
+        <li>
+          Neuronal wiring diagram of an adult brain. Dorkenwald et. al.
+          <a href="https://doi.org/10.1038/s41586-024-07558-y" target="_blank">Nature 2024</a>
+        </li>
+        
+        <li>
+          Whole-brain annotation and multi-connectome cell typing quantifies circuit stereotypy in Drosophila. Schlegel et. al.
+          <a href="https://doi.org/10.1038/s41586-024-07686-5" target="_blank">Nature 2024</a>
+        </li>
+        
+        <li>
+          Neuronal &#34;parts list&#34; and wiring diagram for a visual system. Matsliah, Yu et. al
+          <a href="https://doi.org/10.1038/s41586-024-07981-1" target="_blank">Nature 2024</a>
+        </li>
+        
+        <li>
+          Brain rewiring during developmental transitions: A Comparative Analysis of Larva and Adult Drosophila melanogaster. Yadav et. al.
+          <a href="https://doi.org/10.1101/2024.05.01.592061" target="_blank">bioRxiv 2024</a>
+        </li>
+        
+        <li>
+          Divergent neural circuits for proprioceptive and exteroceptive sensing of the Drosophila leg. Lee et. al.
+          <a href="https://doi.org/10.1101/2024.04.23.590808" target="_blank">bioRxiv 2024</a>
+        </li>
+        
+        <li>
+          Morphology and synapse topography optimize linear encoding of synapse numbers in Drosophila looming responsive descending neurons.. Moreno-Sanchez et. al.
+          <a href="https://doi.org/10.1101/2024.04.24.591016" target="_blank">bioRxiv 2024</a>
+        </li>
+        
+        <li>
+          Ectopic Reconstitution of a Spine-Apparatus Like Structure Provides Insight into Mechanisms Underlying Its Formation. Falahati et. al.
+          <a href="https://doi.org/10.1101/2024.04.16.589782" target="_blank">bioRxiv 2024</a>
+        </li>
+        
+        <li>
+          Interneuron diversity and normalization specificity in a visual system. Seung
+          <a href="https://doi.org/10.1101/2024.04.03.587837" target="_blank">bioRxiv 2024</a>
+        </li>
+        
+        <li>
+          Social state gates vision using three circuit mechanisms in Drosophila. Schretter et. al.
+          <a href="https://doi.org/10.1101/2024.03.15.585289" target="_blank">bioRxiv 2024</a>
+        </li>
+        
+        <li>
+          Light and dopamine impact two circadian neurons to promote morning wakefulness. Le et. al.
+          <a href="https://doi.org/10.1101/2024.03.04.583333" target="_blank">bioRxiv 2024</a>
+        </li>
+        
+        <li>
+          Neural pathways and computations that achieve stable contrast processing tuned to natural scenes. Gür et. al.
+          <a href="https://doi.org/10.1101/2024.02.27.582271" target="_blank">bioRxiv 2024</a>
+        </li>
+        
+        <li>
+          Neurons underlying aggressive actions that are shared by both males and females in Drosophila. Tao et. al.
+          <a href="https://doi.org/10.1101/2024.02.26.582148" target="_blank">bioRxiv 2024</a>
+        </li>
+        
+        <li>
+          Molecular and Cellular Mechanisms of Teneurin Signaling in Synaptic Partner Matching. Xu et. al.
+          <a href="https://doi.org/10.1101/2024.02.23.581689" target="_blank">bioRxiv 2024</a>
+        </li>
+        
+        <li>
+          Organization of an ascending circuit that conveys flight motor state in Drosophila. Cheong et. akl.
+          <a href="https://www.sciencedirect.com/science/article/abs/pii/S0960982224001131#fig5" target="_blank">Current Biology 2024</a>
+        </li>
+        
+        <li>
+          Taste cells expressing Ionotropic Receptor 94e reciprocally impact feeding and egg laying in Drosophila. Guillemin et. al.
+          <a href="https://www.biorxiv.org/content/10.1101/2024.01.23.576843v1" target="_blank">bioRxiv 2024</a>
+        </li>
+        
+        <li>
+          Anti-diuretic hormone ITP signals via a guanylate cyclase receptor to modulate systemic homeostasis in Drosophila. Gera et. al.
+          <a href="https://www.biorxiv.org/content/10.1101/2024.02.07.579245v1" target="_blank">bioRxiv 2024</a>
+        </li>
+        
+        <li>
+          Network Statistics of the Whole-Brain Connectome of Drosophila. Lin et. al.
+          <a href="https://doi.org/10.1038/s41586-024-07968-y" target="_blank">Nature 2024</a>
+        </li>
+        
+        <li>
+          Synaptic connectome of the Drosophila circadian clock. Reinhard et. al.
+          <a href="https://doi.org/10.1101/2023.09.11.557222" target="_blank">bioRxiv 2023</a>
+        </li>
+        
+        <li>
+          Presynaptic inhibition selectively suppresses leg proprioception in behaving Drosophila. Dallmann
+          <a href="https://doi.org/10.1101/2023.10.20.563322" target="_blank">bioRxiv 2023</a>
+        </li>
+        
+        <li>
+          Aminergic and peptidergic modulation of Insulin-Producing Cells in Drosophila. Held
+          <a href="https://doi.org/10.1101/2023.09.14.557555" target="_blank">bioRxiv 2023</a>
+        </li>
+        
+        <li>
+          Descending control and regulation of spontaneous flight turns in Drosophila. Ros et. al.
+          <a href="https://www.cell.com/current-biology/abstract/S0960-9822(23)01747-5" target="_blank">Current Biology 2023</a>
+        </li>
+        
+        <li>
+          Neural circuit mechanisms underlying context-specific halting in Drosophila. Sapkal et. al.
+          <a href="https://doi.org/10.1038/s41586-024-07854-7" target="_blank">Nature 2024</a>
+        </li>
+        
+        <li>
+          Heterogeneity of synaptic connectivity in the fly visual system. Cornean et. al.
+          <a href="https://www.nature.com/articles/s41467-024-45971-z" target="_blank">Nature Communications 2023</a>
+        </li>
+        
+        <li>
+          Overlap and divergence of neural circuits mediating distinct behavioral responses to sugar. Jacobs et. al.
+          <a href="https://www.biorxiv.org/content/10.1101/2023.10.01.560401v1.full.pdf" target="_blank">bioRxiv 2023</a>
+        </li>
+        
+        <li>
+          Diversity of visual inputs to Kenyon cells of the Drosophila mushroom body. Ganguly et. al.
+          <a href="https://doi.org/10.1038/s41467-024-49616-z" target="_blank">Nature Communications 2024</a>
+        </li>
+        
+        <li>
+          A comprehensive neuroanatomical survey of the Drosophila Lobula Plate Tangential Neurons with predictions for their optic flow sensitivity. Zhao et. al.
+          <a href="https://www.biorxiv.org/content/10.1101/2023.10.16.562634v1" target="_blank">bioRxiv 2023</a>
+        </li>
+        
+        <li>
+          Fine-grained descending control of steering in walking Drosophila. Yang et. al.
+          <a href="https://www.biorxiv.org/content/10.1101/2023.10.15.562426v2" target="_blank">bioRxiv 2023</a>
+        </li>
+        
+        <li>
+          The fly connectome reveals a path to the effectome. Pospisil et. al.
+          <a href="https://doi.org/10.1038/s41586-024-07982-0" target="_blank">Nature 2024</a>
+        </li>
+        
+        <li>
+          Insights into vision from interpretation of a neuronal wiring diagram. Seung
+          <a href="https://www.biorxiv.org/content/10.1101/2023.11.15.567126v2" target="_blank">bioRxiv 2023</a>
+        </li>
+        
+        <li>
+          Connectomic reconstruction predicts the functional organization of visual inputs to the navigation center of the Drosophila brain. Garner et. al.
+          <a href="https://www.biorxiv.org/content/10.1101/2023.11.29.569241v1" target="_blank">bioRxiv 2023</a>
+        </li>
+        
+        <li>
+          Synaptic and peptidergic connectomes of the Drosophila circadian clock. Reinhard et. al.
+          <a href="https://www.biorxiv.org/content/10.1101/2023.09.11.557222v1.full" target="_blank">bioRxiv 2023</a>
+        </li>
+        
+        <li>
+          Neuronal correlates of time integration into memories. Frantzmann et. al.
+          <a href="https://www.biorxiv.org/content/10.1101/2023.09.12.557375v1.full" target="_blank">bioRxiv 2023</a>
+        </li>
+        
+        <li>
+          Networks of descending neurons transform command-like signals into population-based behavioral control. Braun et. al.
+          <a href="https://www.biorxiv.org/content/10.1101/2023.09.11.557103v1.full" target="_blank">bioRxiv 2023</a>
+        </li>
+        
+        <li>
+          A Drosophila computational brain model reveals sensorimotor processing. Shiu et. al.
+          <a href="https://doi.org/10.1038/s41586-024-07763-9" target="_blank">Nature 2024</a>
+        </li>
+        
+        <li>
+          Hunger- and thirst-sensing neurons modulate a neuroendocrine network to coordinate sugar and water ingestion. González-Segarra et. al.
+          <a href="https://elifesciences.org/articles/88143" target="_blank">eLife 2023</a>
+        </li>
+        
+        <li>
+          Disynaptic inhibition shapes tuning of OFF-motion detectors in Drosophila. Braun et. al.
+          <a href="https://www.cell.com/current-biology/pdf/S0960-9822(23)00601-2.pdf" target="_blank">Current Biology 2023</a>
+        </li>
+        
+        <li>
+          Hue selectivity from recurrent circuitry in Drosophila. Christenson et. al.
+          <a href="https://doi.org/10.1038/s41593-024-01640-4" target="_blank">Nature Neuroscience 2024</a>
+        </li>
+        
+        <li>
+          Neurotransmitter Classification from Electron Microscopy Images at Synaptic Sites in Drosophila Melanogaster. Eckstein et. al.
+          <a href="https://www.cell.com/cell/fulltext/S0092-8674(24)00307-6" target="_blank">Cell 2023 (2024)</a>
+        </li>
+        
+        <li>
+          Visual Feedback Neurons Fine-Tune Drosophila Male Courtship via GABA-Mediated Inhibition. Mabuchi et. al.
+          <a href="https://www.cell.com/current-biology/abstract/S0960-9822(23)01113-2" target="_blank">Current Biology 2023</a>
+        </li>
+        
+        <li>
+          Somatotopic organization among parallel sensory pathways that promote a grooming sequence in Drosophila. Eichler et. al.
+          <a href="https://elifesciences.org/reviewed-preprints/87602" target="_blank">eLife 2023</a>
+        </li>
+        
+        <li>
+          Neural network organization for courtship-song feature detection in Drosophila. Baker et. al.
+          <a href="https://www.sciencedirect.com/science/article/pii/S0960982222009782?via%3Dihub" target="_blank">Current Biology 2023</a>
+        </li>
+        
+        <li>
+          Eye structure shapes neuron function in Drosophila motion vision. Zhao et. al.
+          <a href="https://www.biorxiv.org/content/10.1101/2022.12.14.520178v1.full.pdf" target="_blank">bioRxiv 2022</a>
+        </li>
+        
+        <li>
+          Structured sampling of olfactory input by the fly mushroom body. Zheng et. al.
+          <a href="https://www.sciencedirect.com/science/article/pii/S0960982222009903?via%3Dihub" target="_blank">Current Biology 2022</a>
+        </li>
+        
+        <li>
+          Taste quality and hunger interactions in a feeding sensorimotor circuit. Shiu et. al.
+          <a href="https://elifesciences.org/articles/79887#info" target="_blank">eLife 2022</a>
+        </li>
+        
+        <li>
+          Mating-driven variability in olfactory local interneuron wiring. Chou et. al.
+          <a href="https://www.science.org/doi/10.1126/sciadv.abm7723?url_ver=Z39.88-2003&amp;rfr_id=ori:rid:crossref.org&amp;rfr_dat=cr_pub%20%200pubmed" target="_blank">Science Advances 2022</a>
+        </li>
+        
+        <li>
+          Olfactory stimuli and moonwalker SEZ neurons can drive backward locomotion in Drosophila. Israel
+          <a href="https://www.sciencedirect.com/science/article/pii/S096098222200046X?via%3Dihub" target="_blank">Current Biology 2022</a>
+        </li>
+        
+        <li>
+          Chemoreceptor co-expression in Drosophila melanogaster olfactory neurons. Task et. al.
+          <a href="https://elifesciences.org/articles/72599" target="_blank">eLife 2022</a>
+        </li>
+        
+        <li>
+          Synaptic targets of photoreceptors specialized to detect color and skylight polarization in Drosophila. Kind et. al.
+          <a href="https://elifesciences.org/articles/71858" target="_blank">eLife 2021</a>
+        </li>
+        
+        <li>
+          Classification and genetic targeting of cell types in the primary taste and premotor center of the adult Drosophila brain. Sterne et. al.
+          <a href="https://elifesciences.org/articles/71679" target="_blank">eLife 2021</a>
+        </li>
+        
+        <li>
+          Information flow, cell types and stereotypy in a full olfactory connectome. Schlegel et. al.
+          <a href="https://elifesciences.org/articles/66018" target="_blank">eLife 2021</a>
+        </li>
+        
+        <li>
+          The neural basis for a persistent internal state in Drosophila females. Deutsch et. al.
+          <a href="https://elifesciences.org/articles/59502" target="_blank">eLife 2020 (2022)</a>
+        </li>
+        
+      </ul>
+      <span>If you have a publication that utilized the FlyWire connectome but is not listed here, please get in touch to let us know: flywire@princeton.edu</span>
+      </p>
+    </div> -->
+    <div>
+      <br>
+      <h3>Contacts</h3>
+      <ul>
+        <li>Zhihao Zheng (zhihaoz@princeton.edu)</li>
+      </ul>
+      </p>
+    </div>
+  </div>
+</div>
+
+
+
+    <script>
+      // Modal Image Gallery
+      function onClick(element) {
+        document.getElementById("img01").src = element.src;
+        document.getElementById("modal01").style.display = "block";
+        var captionText = document.getElementById("caption");
+        captionText.innerHTML = element.alt;
+      }
+
+      // Toggle between showing and hiding the sidebar when clicking the menu icon
+      var mySidebar = document.getElementById("mySidebar");
+
+      function w3_open() {
+        if (mySidebar.style.display === "block") {
+          mySidebar.style.display = "none";
+        } else {
+          mySidebar.style.display = "block";
+        }
+      }
+
+      // Close the sidebar with the close button
+      function w3_close() {
+        mySidebar.style.display = "none";
+      }
+    </script>
+
+    <!-- Footer -->
+    <footer class="w3-center w3-black w3-padding-64">
+      <!-- <a
+        href="https://codex.flywire.ai/"
+        class="w3-button w3-blue w3-padding-large w3-large w3-margin-top w3-hover-opacity-off"
+        >Explore FlyWire Connectome in Codex</a
+      > -->
+      <br />
+      <br />
+      <!-- <a href="https://pyr.ai/guidelines" style="color: yellow">Citation Guidelines</a>
+      &#183; -->
+      <a href="https://pyr.ai/tos" style="color: yellow">Terms & Privacy</a>
+
+      <div class="w3-xlarge w3-section">
+        <a href="https://blog.pyr.ai"
+          ><i class="fa fa-blog w3-hover-opacity"></i
+        ></a>
+        <a href="https://x.com/pyrgame"
+          ><i class="fa-brands fa-twitter w3-hover-opacity"></i
+        ></a>
+        <a href="mailto:flywire@princeton.edu"
+          ><i class="fa fa-envelope w3-hover-opacity"></i
+        ></a>
+      </div>
+    </footer>
+  </body>
+</html>
