@@ -186,12 +186,10 @@ controls.minDistance = 220;
 controls.maxDistance = 5200;
 const embedded = document.documentElement.classList.contains("embed");
 if (embedded) {
-  // A wheel over the block must scroll the page, not zoom the block: with zoom off
-  // OrbitControls returns before preventDefault and the event reaches the host.
-  controls.enableZoom = false;
+  // Zoom stays on: a wheel or a pinch over the block zooms the block, and the
+  // page is scrolled from outside it, the same deal as touch. Panning is off so
+  // two fingers always mean zoom and the block cannot be dragged out of frame.
   controls.enablePan = false;
-  // touch stays with OrbitControls' own touch-action:none on the canvas: one
-  // finger turns the block, two fingers do nothing (zoom and pan are off)
 }
 
 // Data z is the thin 100 um axis. three.js is Y up, so the whole assembly is turned
