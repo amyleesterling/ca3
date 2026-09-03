@@ -47,6 +47,17 @@ jobs:
           token: ${{ secrets.PYR_TOKEN }}
           path: pyr-homepage-static
 
+      - name: Show the template's shape
+        if: steps.token.outputs.ok == 'true'
+        run: |
+          # the rendered page and the Jinja source differ; print enough of the
+          # source that a failed anchor can be read from the log alone
+          cd pyr-homepage-static/templates
+          ls -R | head -40
+          echo "=== index.html: lines with head, extends, include, block, header"
+          grep -nE '</?head>|\{%|<header|BANNER' index.html | head -40
+          echo "=== index.html: first 30 lines"; head -30 index.html
+
       - name: Apply the phone layout and push the demo branch
         if: steps.token.outputs.ok == 'true'
         run: |

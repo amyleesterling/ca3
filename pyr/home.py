@@ -18,16 +18,24 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 CSS = open(os.path.join(HERE, "home_mobile.css"), encoding="utf-8").read()
 MARK_A, MARK_B = "<!-- mobile landing: begin -->", "<!-- mobile landing: end -->"
 BLOCK = f"{MARK_A}\n<style>\n{CSS}</style>\n{MARK_B}"
-# The sheet goes in just before </head>: after pyr.css however the template
-# spells that link (the rendered page and the Jinja source differ), and before
-# the body's own hero <style>, which the hero selectors outrank by id.
-ANCHOR = "</head>"
+# Where the sheet goes. The rendered page and the Jinja source differ (the css
+# link is written through url_for, and index.html may not carry its own <head>
+# if it extends a layout), so the first of these found exactly once wins. All
+# of them sit after pyr.css; the header tag is preferred because it also comes
+# after the page's own hero <style>, so the sheet wins on order as well as on id.
+ANCHORS = [
+    '<header class="bgimg-1 w3-display-container" id="home">',
+    "<!-- BANNER HEADER -->",
+    "</head>",
+]
 
 
 def inject(html):
     html = re.sub(r"\n?" + re.escape(MARK_A) + r".*?" + re.escape(MARK_B) + r"\n?", "", html, flags=re.S)
-    assert html.count(ANCHOR) == 1, "</head> not found exactly once"
-    return html.replace(ANCHOR, BLOCK + "\n" + ANCHOR)
+    for a in ANCHORS:
+        if html.count(a) == 1:
+            return html.replace(a, BLOCK + "\n" + a)
+    sys.exit("no anchor found exactly once; looked for: " + " | ".join(ANCHORS))
 
 
 mode = sys.argv[1]
