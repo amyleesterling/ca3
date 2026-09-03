@@ -520,8 +520,38 @@
     background: linear-gradient(178deg, rgba(13,26,45,.97), rgba(6,12,22,.99));
     color: var(--ink); box-shadow: 0 28px 80px rgba(0,0,0,.7), 0 0 60px rgba(62,150,240,.14); }
   #peek::backdrop { background: rgba(4,6,11,.74); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
-  #peek[open] { animation: peek-in .26s cubic-bezier(.22,.61,.36,1); }
-  @keyframes peek-in { from { opacity: 0; transform: translateY(8px) scale(.985); } }
+  /* The panel grows out of the tile that was tapped (the script sets the origin
+     to that tile), overshoots a touch and settles; the picture arrives a beat
+     behind, the text in three, and a hairline lights across the top. Closing
+     runs it backwards into the tile, which glows once as the panel lands. */
+  #peek[open] { animation: peek-in .42s cubic-bezier(.2,.9,.28,1.14) both; }
+  #peek.closing { animation: peek-out .24s cubic-bezier(.4,0,.7,.3) both; pointer-events: none; }
+  @keyframes peek-in {
+    from { opacity: 0; transform: scale(.62) translateY(4px); }
+    55%  { opacity: 1; }
+    to   { opacity: 1; transform: none; } }
+  @keyframes peek-out { to { opacity: 0; transform: scale(.7) translateY(6px); } }
+  #peek[open]::backdrop { animation: peek-veil .42s ease both; }
+  #peek.closing::backdrop { animation: peek-unveil .24s ease both; }
+  @keyframes peek-veil { from { opacity: 0; } }
+  @keyframes peek-unveil { to { opacity: 0; } }
+  #peek::before { content: ""; position: absolute; left: 8%; right: 8%; top: 0; height: 1px; z-index: 3;
+    background: linear-gradient(90deg, transparent, rgba(214,240,255,1) 50%, transparent);
+    box-shadow: 0 0 14px rgba(150,212,255,.85); }
+  #peek[open]::before { animation: peek-line .7s .12s cubic-bezier(.16,1,.3,1) both; }
+  @keyframes peek-line { from { left: 50%; right: 50%; opacity: 0; } }
+  #peek[open] .peek-fig img { animation: peek-img .8s .05s cubic-bezier(.16,1,.3,1) both; }
+  @keyframes peek-img { from { transform: scale(1.08); filter: saturate(.55) brightness(.6); } }
+  #peek[open] .peek-txt > * { animation: peek-rise .55s cubic-bezier(.16,1,.3,1) both; }
+  #peek[open] .peek-txt > :nth-child(1) { animation-delay: .14s; }
+  #peek[open] .peek-txt > :nth-child(2) { animation-delay: .2s; }
+  #peek[open] .peek-txt > :nth-child(3) { animation-delay: .26s; }
+  @keyframes peek-rise { from { opacity: 0; transform: translateY(12px); } }
+  button.stat:active { transform: translateY(0) scale(.985); }
+  button.stat.landed { animation: stat-land .55s ease-out; }
+  @keyframes stat-land {
+    0%   { box-shadow: 0 0 0 0 rgba(150,212,255,.55), 0 0 22px rgba(62,150,240,.35); border-color: rgba(214,240,255,.9); }
+    100% { box-shadow: 0 0 0 10px rgba(150,212,255,0), 0 0 0 rgba(62,150,240,0); } }
   .peek-fig { margin: 0; background: #04060B; }
   .peek-fig img { display: block; width: 100%; height: auto; max-height: 52dvh; object-fit: cover; }
   .peek-txt { padding: 16px 20px 20px; }
@@ -534,7 +564,10 @@
     border-radius: 50%; border: 1px solid rgba(150,212,255,.4); background: rgba(8,14,24,.8);
     color: var(--ink); font: 22px/1 ui-sans-serif, system-ui, sans-serif; cursor: pointer; }
   .peek-x:hover, .peek-x:focus-visible { border-color: rgba(214,240,255,.9); outline: none; }
-  @media (prefers-reduced-motion: reduce) { #peek[open] { animation: none; } button.stat { transition: none; } }
+  @media (prefers-reduced-motion: reduce) {
+    #peek[open], #peek.closing, #peek[open]::backdrop, #peek.closing::backdrop, #peek[open]::before,
+    #peek[open] .peek-fig img, #peek[open] .peek-txt > *, button.stat.landed { animation: none; }
+    button.stat { transition: none; } }
   .volfig { margin: 26px 0 10px; }
   /* the block is the live scene from volume.html, framed; the still it replaced is
      kept in that page as the no-WebGL fallback */
@@ -714,15 +747,41 @@
       document.getElementById("peek-k").textContent = btn.querySelector(".k").textContent;
       document.getElementById("peek-title").textContent = d.title;
       document.getElementById("peek-body").innerHTML = d.body;
+      from = btn;
       dlg.showModal();
+      // grow out of the tile: the origin is the tile's centre in the panel's own frame.
+      // Read after showModal, when the panel has a position, and before first paint.
+      var r = dlg.getBoundingClientRect(), t = btn.getBoundingClientRect();
+      dlg.style.transformOrigin = (t.left + t.width / 2 - r.left) + "px " + (t.top + t.height / 2 - r.top) + "px";
+    }
+    var from = null, still = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    function shut() {
+      if (!dlg.open || dlg.classList.contains("closing")) return;
+      if (still) { dlg.close(); return; }
+      dlg.classList.add("closing");
+      dlg.addEventListener("animationend", function done(e) {
+        if (e.target !== dlg) return;             // the inner reveals end too; wait for the panel's own
+        dlg.removeEventListener("animationend", done);
+        dlg.classList.remove("closing");
+        dlg.close();
+      });
     }
     document.querySelectorAll(".stat[data-peek]").forEach(function (b) {
       b.addEventListener("click", function () { open(b); });
     });
-    dlg.querySelector(".peek-x").addEventListener("click", function () { dlg.close(); });
+    dlg.querySelector(".peek-x").addEventListener("click", shut);
     // a click on the backdrop lands on the dialog element itself, not its children
-    dlg.addEventListener("click", function (e) { if (e.target === dlg) dlg.close(); });
-    dlg.addEventListener("close", function () { img.removeAttribute("src"); });
+    dlg.addEventListener("click", function (e) { if (e.target === dlg) shut(); });
+    // Escape fires cancel and would close instantly; route it through the same exit
+    dlg.addEventListener("cancel", function (e) { e.preventDefault(); shut(); });
+    dlg.addEventListener("close", function () {
+      img.removeAttribute("src");
+      if (from) {                                 // the tile lights once as the panel lands back in it
+        var b = from; from = null;
+        b.classList.remove("landed"); void b.offsetWidth; b.classList.add("landed");
+        b.addEventListener("animationend", function () { b.classList.remove("landed"); }, { once: true });
+      }
+    });
   })();
   </script>
 
