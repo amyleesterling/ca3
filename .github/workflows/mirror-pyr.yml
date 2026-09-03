@@ -48,15 +48,15 @@ jobs:
           token: ${{ secrets.PYR_TOKEN }}
           path: pyr-homepage-static
 
-      - name: Show how pyr.ai routes requests
+      - name: Show how pyr.ai is built and routed
         if: steps.token.outputs.ok == 'true'
         run: |
-          # pyr.ai answers every unknown path with the home page, so a folder
-          # dropped into the repo is not reachable until its routing knows about
-          # it. Print the routing files so the mirror can be taught to patch them.
+          # pyr.ai is a Flask app in a container: main.py decides what a path
+          # serves, and the Dockerfile and .dockerignore decide what ships. Print
+          # them so a failure here can be read without a checkout.
           cd pyr-homepage-static
           echo "=== top level"; ls -la
-          for f in app.yaml dispatch.yaml firebase.json main.py server.py app.py requirements.txt package.json; do
+          for f in main.py Dockerfile .dockerignore cloudbuild.yaml requirements.txt; do
             [ -f "$f" ] && { echo "=== $f"; cat "$f"; echo; }
           done; true
 
