@@ -31,7 +31,9 @@ ANCHORS = [
 
 
 def inject(html):
-    html = re.sub(r"\n?" + re.escape(MARK_A) + r".*?" + re.escape(MARK_B) + r"\n?", "", html, flags=re.S)
+    # strip exactly what inject() adds, the block and the newline after it, so a
+    # second run reproduces the first byte for byte
+    html = re.sub(re.escape(MARK_A) + r".*?" + re.escape(MARK_B) + r"\n", "", html, flags=re.S)
     for a in ANCHORS:
         if html.count(a) == 1:
             return html.replace(a, BLOCK + "\n" + a)
