@@ -25,6 +25,13 @@ account that can push to `seung-lab/pyr-homepage-static`, added under this
 repo's Settings > Secrets and variables > Actions. Until that secret exists
 the job stops with a note instead of failing.
 
+A fine-grained token for an organisation repo is not usable until an owner of
+that organisation approves it: the button reads "Generate token and request
+access", and until approval every clone fails with "Write access to repository
+not granted", even for reads. Owners approve under the org's Settings > Personal
+access tokens > Pending requests. The one in use expires after 30 days; a fresh
+token in the same secret restarts the mirror.
+
 Or from a machine with both repos checked out
 (`seung-lab/pyr-homepage-static`, main branch deploys):
 
