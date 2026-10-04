@@ -123,7 +123,7 @@ const zMid = (zLo + zHi) / 2;
 const target0 = new THREE.Vector3(centre.x, centre.y, zMid);
 // how wide the column is, so the camera distance scales with the subset
 const spread = Math.max(...live.map(c => Math.hypot(c.soma_um[0]-centre.x, c.soma_um[1]-centre.y))) + 12;
-const DK = spread / 46;   // the 69-cell test set, spread ~46 µm, framed well at the distances below
+const DK = spread / 50;   // the 170-cell column, spread ~50 µm, framed well at the distances below
 
 // ---- HUD --------------------------------------------------------------------------
 const rowsEl = $('rows');
@@ -163,11 +163,11 @@ window.setFrame = function(f) {
   // camera: a slow orbit, from above during the fill, swinging to the side as the types appear
   const elev = lerp(1.22, 0.66, sm(t, T.fill0, T.fill1)) - 0.54*sm(t, T.typeIn - 0.5, T.typeDone + 2.5);
   const az = -0.6 + 0.04 * t;
-  const dist = DK * (lerp(188, 158, sm(t, T.fill0, T.fill1)) + 10*sm(t, T.typeIn, T.typeDone + 2));
+  const dist = DK * (lerp(262, 236, sm(t, T.fill0, T.fill1)) + 30*sm(t, T.typeIn, T.typeDone + 2));
   cam.position.set(target0.x + dist*Math.cos(elev)*Math.cos(az), target0.y + dist*Math.cos(elev)*Math.sin(az), target0.z + dist*Math.sin(elev));
   cam.up.set(0,0,1); cam.lookAt(target0);
   // frame the column left of centre so the board has room
-  cam.setViewOffset(1920, 1080, 150, -10, 1920, 1080);
+  cam.setViewOffset(1920, 1080, 160, -64, 1920, 1080);
 
   // HUD
   $('count').textContent = fmt(n);
