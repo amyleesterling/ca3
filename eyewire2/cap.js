@@ -1,6 +1,7 @@
 // Frame capture for anim.html.
 //   node cap.js probe 2 10 20 29.7 33 40 48     -> probe_<sec>.png
-//   node cap.js full out.mp4 [fps]              -> h264 via ffmpeg on stdin
+//   node cap.js full out.mp4                    -> h264 via ffmpeg on stdin
+//   node cap.js still random|players out.png    -> one 3840x2160 still
 const { chromium } = require('/opt/node22/lib/node_modules/playwright');
 const { spawn } = require('child_process');
 const fs = require('fs');
@@ -12,14 +13,18 @@ const FPS = 30;
   const browser = await chromium.launch({ headless: true, args: [
     '--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist',
     '--disable-gpu-vsync', '--enable-webgl', '--font-render-hinting=none', '--hide-scrollbars'] });
-  const page = await browser.newPage({ viewport: { width: 1920, height: 1080 }, deviceScaleFactor: 1 });
+  const mode = process.argv[2] || 'probe';
+  const page = await browser.newPage({ viewport: { width: 1920, height: 1080 }, deviceScaleFactor: mode === 'still' ? 2 : 1 });
   page.on('console', m => console.error('[page]', m.text()));
   page.on('pageerror', e => console.error('[pageerror]', e.message));
-  await page.goto(URL, { waitUntil: 'networkidle' });
+  await page.goto(mode === 'still' ? `${URL}?still=${process.argv[3]}` : URL, { waitUntil: 'networkidle' });
   await page.waitForFunction(() => window.READY === true, null, { timeout: 60000 });
   const total = await page.evaluate(() => window.TOTAL_FRAMES);
-  const mode = process.argv[2] || 'probe';
-  if (mode === 'probe') {
+  if (mode === 'still') {
+    await page.evaluate(() => window.setStill());
+    await page.screenshot({ path: process.argv[4] || `still_${process.argv[3]}.png`, type: 'png' });
+    console.log('still', process.argv[3]);
+  } else if (mode === 'probe') {
     for (const s of process.argv.slice(3)) {
       const f = Math.round(parseFloat(s) * FPS);
       await page.evaluate(f => window.setFrame(f), f);

@@ -6,7 +6,7 @@
 html,body{margin:0;background:#03050f;overflow:hidden}
 body{width:1920px;height:1080px;position:relative;font-family:Inter,system-ui,sans-serif;color:#fff;
   -webkit-font-smoothing:antialiased}
-canvas{position:absolute;inset:0;display:block}
+canvas{position:absolute;inset:0;display:block;width:1920px;height:1080px}
 #vig{position:absolute;inset:0;pointer-events:none;
   background:radial-gradient(ellipse at 42% 50%, rgba(3,5,15,0) 45%, rgba(3,5,15,.55) 100%)}
 .hud{position:absolute;inset:0;pointer-events:none}
@@ -93,7 +93,7 @@ const hex2v = h => { const c = new THREE.Color(h); return [c.r, c.g, c.b]; };
 // ---- geometry ---------------------------------------------------------------
 // voxels -> scene units: xy at 16 nm, z at 40 nm, z stretched so the slab reads as a slab
 const SX = 0.016, SZ = 0.04 * 2.5;
-const pos = new Float32Array(N*3), col = new Float32Array(N*3), col2 = new Float32Array(N*3), birth = new Float32Array(N), seed = new Float32Array(N);
+const pos = new Float32Array(N*3), col = new Float32Array(N*3), col2 = new Float32Array(N*3), col3 = new Float32Array(N*3), birth = new Float32Array(N), seed = new Float32Array(N);
 let mn = [1e9,1e9,1e9], mx = [-1e9,-1e9,-1e9];
 // deterministic jitter inside the day
 let s = 12345; const rnd = () => (s = (s*1103515245 + 12345) & 0x7fffffff) / 0x7fffffff;
@@ -110,6 +110,7 @@ D.cells.forEach((c, i) => {
   const tn = typeColour[t] ? t : 'other'; typeCount[tn] = (typeCount[tn]||0)+1;
   birth[i] = c[3] + rnd();
   seed[i] = rnd();
+  const hc = new THREE.Color().setHSL(rnd(), 0.92, 0.58); col3.set([hc.r,hc.g,hc.b], i*3);
 });
 // robust centre: median of positions
 const med = k => { const a = Array.from({length:N}, (_,i) => pos[i*3+k]).sort((p,q)=>p-q); return a[N>>1]; };
@@ -121,15 +122,17 @@ const g = new THREE.BufferGeometry();
 g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
 g.setAttribute('cA', new THREE.BufferAttribute(col, 3));
 g.setAttribute('cB', new THREE.BufferAttribute(col2, 3));
+g.setAttribute('cC', new THREE.BufferAttribute(col3, 3));
 g.setAttribute('birth', new THREE.BufferAttribute(birth, 1));
 g.setAttribute('seed', new THREE.BufferAttribute(seed, 1));
 
 const mat = new THREE.ShaderMaterial({
   transparent: true, depthWrite: false, depthTest: false, blending: THREE.AdditiveBlending,
-  uniforms: { uT:{value:0}, uMix:{value:0}, uSize:{value:1}, uPulse:{value:-1}, uPulseO:{value:new THREE.Vector3()}, uPx:{value:1080} },
+  uniforms: { uT:{value:0}, uMix:{value:0}, uFrom:{value:2}, uTo:{value:0}, uSize:{value:1}, uPulse:{value:-1}, uPulseO:{value:new THREE.Vector3()}, uPx:{value:1080} },
   vertexShader: `
-    attribute vec3 cA, cB; attribute float birth, seed;
-    uniform float uT, uMix, uSize, uPulse, uPx; uniform vec3 uPulseO;
+    attribute vec3 cA, cB, cC; attribute float birth, seed;
+    uniform float uT, uMix, uSize, uPulse, uPx; uniform int uFrom, uTo; uniform vec3 uPulseO;
+    vec3 pal(int k){ return k==0 ? cA : (k==1 ? cB : cC); }
     varying vec3 vC; varying float vA, vFlash;
     void main(){
       float age = uT - birth;
@@ -139,7 +142,7 @@ const mat = new THREE.ShaderMaterial({
       float k = clamp(age/0.9, 0.0, 1.0);
       float pop = (1.0-k)*(1.0-k);
       vFlash = pop;
-      vec3 c = mix(cA, cB, uMix);
+      vec3 c = mix(pal(uFrom), pal(uTo), uMix);
       vC = c;
       vA = 1.0;
       float sz = (1.0 + 0.25*seed) * (1.0 + 1.5*pop);
@@ -159,7 +162,7 @@ const mat = new THREE.ShaderMaterial({
       vec2 p = gl_PointCoord*2.0-1.0; float d = length(p); if (d > 1.0) discard;
       float core = smoothstep(0.42, 0.10, d);
       float halo = exp(-d*d*3.2) * 0.42;
-      vec3 c = mix(vC, vec3(1.0), 0.55*vFlash + 0.25*core);
+      vec3 c = mix(vC, vec3(1.0), 0.55*vFlash + 0.16*core);
       float a = (core*0.95 + halo) * (1.0 + 1.2*vFlash);
       gl_FragColor = vec4(c*a, a);
     }`
@@ -169,7 +172,9 @@ const pts = new THREE.Points(g, mat);
 // ---- renderer / camera ------------------------------------------------------
 const canvas = document.getElementById('c');
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false, preserveDrawingBuffer: true });
-renderer.setPixelRatio(1); renderer.setSize(1920, 1080, false);
+const DPR = window.devicePixelRatio || 1;
+renderer.setPixelRatio(DPR); renderer.setSize(1920, 1080, false);
+mat.uniforms.uPx.value = 1080*DPR;
 renderer.setClearColor(0x03050f, 1);
 const scene = new THREE.Scene(); scene.add(pts);
 const cam = new THREE.PerspectiveCamera(32, 1920/1080, 1, 20000);
@@ -219,10 +224,33 @@ const ease = x => x<0?0:x>1?1:x*x*(3-2*x);
 const lerp = (a,b,x) => a+(b-a)*x;
 const sm = (t, a, b) => ease((t-a)/(b-a));
 const clamp01 = x => Math.max(0, Math.min(1, x));
+const STILL = new URLSearchParams(location.search).get('still');   // random | players | null
 let mode = 'players';
 buildRows(players);
+if (STILL) {
+  $('title').style.display = $('end').style.display = $('black').style.display = 'none';
+  $('clabel').textContent = 'bipolar cells proofread by citizen scientists';
+  $('date').textContent = `${dateStr(0)} – ${dateStr(DAYS-1)}`;
+  $('cap').innerHTML = STILL === 'players' ? 'Each dot is one cell\'s soma, coloured by the person who proofread it.' : 'Each dot is one cell\'s soma, every cell its own colour.';
+  if (STILL !== 'players') $('board').style.display = 'none';
+  $('count').textContent = fmt(N); $('count').classList.add('gold');
+  playerCount.fill(0); D.cells.forEach(c => playerCount[c[4]]++);
+  const rows = rowsEl.children, mxp = Math.max(...playerCount);
+  for (let i=0;i<rows.length;i++){ rows[i].querySelector('i').style.width = (100*playerCount[i]/mxp)+'%'; rows[i].querySelector('.n').textContent = fmt(playerCount[i]); }
+}
+
+window.setStill = function() {
+  mat.uniforms.uT.value = DAYS + 5; mat.uniforms.uMix.value = 1; mat.uniforms.uPulse.value = -1;
+  mat.uniforms.uTo.value = STILL === 'players' ? 0 : 2;
+  const wide = STILL !== 'players';
+  const pxPerUnit = (wide ? 1360 : 1250) / extentX;
+  const dist = 1080 / (2*Math.tan(cam.fov*Math.PI/360) * pxPerUnit);
+  placeCamera(0.34, 0.12, dist, (wide ? -30 : 165)/pxPerUnit, (wide ? 70 : 0)/pxPerUnit);
+  renderer.render(scene, cam);
+};
 
 window.setFrame = function(f) {
+  if (STILL) return window.setStill();
   const t = f / FPS;
   // data time (days): 0 at T_FILL0, DAYS at T_FILL1, with a soft start/finish
   let u = (t - T_FILL0) / (T_FILL1 - T_FILL0);
@@ -252,22 +280,17 @@ window.setFrame = function(f) {
   const n = countAt(dayT);
   const cnt = $('count'); cnt.textContent = fmt(n); cnt.classList.toggle('gold', n >= 10000);
   $('date').textContent = dateStr(Math.min(DAYS-1, Math.floor(dayT)));
-  if (t < T_HOLD + 0.2 && mode !== 'players') { mode = 'players'; buildRows(players); $('bh').textContent = 'Proofreaders'; }
-  if (t >= T_HOLD + 0.2 && mode !== 'types') { mode = 'types'; buildRows(typeItems); $('bh').textContent = 'Bipolar cell types'; }
-  const rows = rowsEl.children;
-  if (mode === 'players') {
-    playerCount.fill(0);
-    for (let k=0;k<n;k++) playerCount[D.cells[order[k]][4]]++;
-    const mxp = Math.max(1, ...playerCount);
-    for (let i=0;i<rows.length;i++){ rows[i].querySelector('i').style.width = (100*playerCount[i]/mxp)+'%'; rows[i].querySelector('.n').textContent = fmt(playerCount[i]); }
-  } else {
-    const mxt = Math.max(...Object.values(typeCount)); const k = sm(t, T_HOLD+0.2, T_RECOL+0.4);
-    typeItems.forEach(([label,h,key],i) => { const v = Math.round((typeCount[key]||0)*k); rows[i].querySelector('i').style.width = (100*v/mxt)+'%'; rows[i].querySelector('.n').textContent = fmt(v); });
-  }
+  // the board only appears when the cells are recalled by who completed them;
+  // its bars grow with the recolour
+  const rows = rowsEl.children, kb = sm(t, T_HOLD, T_RECOL+0.3);
+  $('board').style.opacity = sm(t, T_HOLD, T_HOLD+0.9);
+  playerCount.fill(0); D.cells.forEach(c => playerCount[c[4]]++);
+  const mxp = Math.max(...playerCount);
+  for (let i=0;i<rows.length;i++){ const v = Math.round(playerCount[i]*kb); rows[i].querySelector('i').style.width = (100*v/mxp)+'%'; rows[i].querySelector('.n').textContent = fmt(v); }
   // captions
   let cap = '';
-  if (t < T_HOLD) cap = `Each dot is one bipolar cell soma, lit on the day its proofreading was finished. Coloured by proofreader.`;
-  else if (t < T_END0) cap = `<b>154 days</b> · <b>11 proofreaders</b> · <b>${fmt(N)} cells</b>. Now coloured by type, as predicted by the lab's classifier.`;
+  if (t < T_HOLD) cap = `Each dot is one bipolar cell soma, lit on the day its proofreading was finished.`;
+  else if (t < T_END0) cap = `<b>154 days</b> · <b>11 proofreaders</b> · <b>${fmt(N)} cells</b>, now coloured by the person who completed each one.`;
   if (t >= tCross && t < T_HOLD) cap = `<b>10,000</b> on ${dateStr(Math.floor(t10k))}.`;
   $('cap').innerHTML = cap;
 
