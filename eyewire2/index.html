@@ -65,7 +65,7 @@ canvas{position:absolute;inset:0;display:block;width:1920px;height:1080px}
 <div class="card" id="title"><h1><b>10,000</b> cells</h1><p>proofread by the citizen scientists of <b>Eyewire II</b></p></div>
 <div class="card" id="end">
   <div class="mark">Eyewire II</div>
-  <h1><b>10,081</b> bipolar cells</h1>
+  <h1><b>10,000</b> bipolar cells</h1>
   <div class="names" id="names"></div>
   <div class="url">eyewire.ai</div>
 </div>
@@ -233,7 +233,7 @@ if (STILL) {
   $('date').textContent = `${dateStr(0)} – ${dateStr(DAYS-1)}`;
   $('cap').innerHTML = STILL === 'players' ? 'Each dot is one cell\'s soma, coloured by the person who proofread it.' : 'Each dot is one cell\'s soma, every cell its own colour.';
   if (STILL !== 'players') $('board').style.display = 'none';
-  $('count').textContent = fmt(N); $('count').classList.add('gold');
+  $('count').textContent = '10,000'; $('count').classList.add('gold');
   playerCount.fill(0); D.cells.forEach(c => playerCount[c[4]]++);
   const rows = rowsEl.children, mxp = Math.max(...playerCount);
   for (let i=0;i<rows.length;i++){ rows[i].querySelector('i').style.width = (100*playerCount[i]/mxp)+'%'; rows[i].querySelector('.n').textContent = fmt(playerCount[i]); }
