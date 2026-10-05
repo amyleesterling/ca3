@@ -26,7 +26,7 @@ const shot = (page, opts = {}) => page.screenshot({ type: 'png', omitBackground:
   const mode = process.argv[2] || 'probe';
   // SIZE=1080x1920 for the phone cut (with ?aspect=portrait on the page)
   const [VW, VH] = (process.env.SIZE || '1920x1080').split('x').map(Number);
-  const page = await browser.newPage({ viewport: { width: VW, height: VH }, deviceScaleFactor: mode === 'still' ? 2 : 1 });
+  const page = await browser.newPage({ viewport: { width: VW, height: VH }, deviceScaleFactor: process.env.DPR ? +process.env.DPR : (mode === 'still' ? 2 : 1) });
   page.setDefaultTimeout(15 * 60 * 1000);   // a thousand meshes take a while to load and parse
   page.on('console', m => console.error('[page]', m.text()));
   page.on('pageerror', e => console.error('[pageerror]', e.message));
