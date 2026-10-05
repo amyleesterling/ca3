@@ -15,6 +15,7 @@ const FPS = 30;
     '--disable-gpu-vsync', '--enable-webgl', '--font-render-hinting=none', '--hide-scrollbars'] });
   const mode = process.argv[2] || 'probe';
   const page = await browser.newPage({ viewport: { width: 1920, height: 1080 }, deviceScaleFactor: mode === 'still' ? 2 : 1 });
+  page.setDefaultTimeout(15 * 60 * 1000);   // a thousand meshes take a while to load and parse
   page.on('console', m => console.error('[page]', m.text()));
   page.on('pageerror', e => console.error('[pageerror]', e.message));
   await page.goto(mode === 'still' ? `${URL}?still=${process.argv[3]}` : URL, { waitUntil: 'networkidle' });

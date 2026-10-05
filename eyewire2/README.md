@@ -13,6 +13,11 @@ type. Each dot is one soma, lit on the day its proofreading was finished.
   are coloured by type, then recalled by proofreader. `col3d.html` is its page;
   it needs the GLBs from `fetch_meshes.py` in `meshes/`, which stay out of git
   (117 MB for the column, 40,000 triangles per cell)
+- `10k_patch1000.mp4` is the same page on a wider patch: the 1,000 proofread
+  cells nearest the same centre, 981 after strays are left out, at 10,000
+  triangles each. Coloured by type from the first cell, the side view running
+  nearly edge to edge, recalled by proofreader at the end. This is the web
+  encode (35 MB); the 95 MB master stayed out of git
 - `cells.json` is the data behind it, one row per cell: voxel x, y, z, days
   since the first completion, proofreader index, type index
 - `manifest.csv` is the same set in completion order with each cell's final
