@@ -8,6 +8,7 @@ set -e
 PAGE="$1"; OUT="$2"; CHUNK=${CHUNK:-240}
 HERE="$(cd "$(dirname "$0")" && pwd)"
 EXT="${OUT##*.}"; DIR="${OUT%.*}.chunks"; mkdir -p "$DIR"
+rm -f "$DIR/list.tmp"   # a run that was stopped leaves a partial list; start a fresh one
 # frames: the plate stops at the freeze, everything else runs to the end (see col3d.html)
 TOTAL=${TOTAL:-$(python3 -c "
 import json,sys; d=json.load(open('$HERE/captions.json'))
