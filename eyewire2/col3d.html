@@ -6,6 +6,16 @@
 <style>
 @font-face{font-family:Inter;font-weight:100 900;src:url(fonts/inter-latin.woff2) format("woff2")}
 html,body{margin:0;background:#03050f;overflow:hidden}
+.layer-plate #vig,.layer-plate #scrim,.layer-plate #hud,.layer-plate #wm,.layer-plate #black,.layer-plate #finale,.layer-plate #fveil{display:none}
+/* the finale: the counter flies to the centre over the frozen cells and rolls on to 10,000 */
+#fveil{position:absolute;inset:0;background:#03050f;opacity:0;pointer-events:none}
+#finale{position:absolute;left:0;right:0;top:300px;text-align:center;pointer-events:none;opacity:0}
+#fnum{display:inline-block;font-size:230px;font-weight:300;letter-spacing:-.035em;line-height:1;font-variant-numeric:tabular-nums;
+  transform-origin:50% 50%;text-shadow:0 0 60px rgba(120,160,255,.3)}
+#fnum.gold{color:#ffd56a;text-shadow:0 0 80px rgba(255,200,90,.55),0 0 160px rgba(255,180,60,.25)}
+#fline{font-size:31px;font-weight:300;color:rgba(255,255,255,.92);margin:34px auto 0;white-space:nowrap;line-height:1.4;text-shadow:0 2px 18px rgba(3,5,15,.9)}
+.layer-overlay,.layer-overlay body{background:transparent}
+.layer-overlay canvas#c{visibility:hidden}
 body{width:1920px;height:1080px;position:relative;font-family:Inter,system-ui,sans-serif;color:#fff;-webkit-font-smoothing:antialiased}
 canvas{position:absolute;inset:0;display:block;width:1920px;height:1080px}
 #vig{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at 45% 50%, rgba(3,5,15,0) 50%, rgba(3,5,15,.6) 100%)}
@@ -57,6 +67,8 @@ canvas{position:absolute;inset:0;display:block;width:1920px;height:1080px}
   <div id="cap"></div>
   <div id="legend"></div>
 </div>
+<div id="fveil"></div>
+<div id="finale"><div id="fnum"></div><div id="fline"></div></div>
 <div id="wm">eyewire.ai</div>
 <div id="black"></div>
 <div id="load"></div>
@@ -69,7 +81,17 @@ import * as THREE from 'three';
 import { GLTFLoader } from '../web/vendor/loaders/GLTFLoader.js';
 
 const FPS = 30, $ = id => document.getElementById(id), fmt = n => n.toLocaleString('en-US');
-const MESHES = new URLSearchParams(location.search).get('meshes') || 'meshes';
+const QS = new URLSearchParams(location.search);
+const MESHES = QS.get('meshes') || 'meshes';
+// ?layer=plate renders the cells alone; ?layer=overlay renders every word, fade and the award on a
+// transparent page with no 3D drawn; compose.py lays one on the other. No layer: both, as before.
+const LAYER = QS.get('layer') || '';
+const TEXT = await (await fetch('captions.json', { cache: 'no-store' })).json();
+if (LAYER === 'plate') document.documentElement.classList.add('layer-plate');
+if (LAYER === 'overlay') document.documentElement.classList.add('layer-overlay');
+document.querySelector('.eyebrow').textContent = TEXT.eyebrow;
+document.getElementById('clabel').textContent = TEXT.counter_label;
+document.getElementById('wm').textContent = TEXT.watermark;
 const IDX = await (await fetch(`${MESHES}/index.json`)).json();
 const cells = IDX.cells.slice().sort((a,b) => a.date.localeCompare(b.date));
 const N = cells.length;
@@ -157,25 +179,31 @@ const typeItems = TYPE_LEGEND.concat([['other', OTHER_HEX]]).map(([t,h]) => [t =
 // ---- timeline (seconds) ------------------------------------------------------------
 // everything 3.4 s earlier than the cut with an opening title, so the films splice frame for frame
 const OFF = 3.4;
-const T = { fill0: 4.0-OFF, fill1: 27.0-OFF, playerIn: 33.0-OFF, playerDone: 35.0-OFF, end0: 41.0-OFF, award: 40.6-OFF, end1: 45.5 };
-window.TOTAL_FRAMES = Math.round((T.end1 + 1.0) * FPS);   // 46.5 s
+const F = TEXT.finale;
+const T = { fill0: 0, fill1: 27.0-OFF, playerIn: 33.0-OFF, playerDone: 35.0-OFF,
+            freeze: F.at, roll0: F.at + F.roll_starts_after, roll1: F.at + F.roll_starts_after + F.roll_seconds,
+            award: TEXT.award.at, end1: TEXT.award.at + 7.0 };
+// the plate stops where the cells freeze; compose.py holds its last frame under the finale
+window.TOTAL_FRAMES = LAYER === 'plate' ? Math.round(T.freeze * FPS) + 1 : Math.round((T.end1 + 1.0) * FPS);
 const ease = x => x<0?0:x>1?1:x*x*(3-2*x), sm = (t,a,b) => ease((t-a)/(b-a)), lerp = (a,b,x) => a+(b-a)*x;
 let board = '';
 const tmp = new THREE.Color();
 
 window.setFrame = function(f) {
   const t = f / FPS;
-  // arrivals, in completion order, eased so the first and last cells are not rushed
-  const u = sm(t, T.fill0, T.fill1);
-  const arrived = u * live.length;
+  const ts = Math.min(t, T.freeze);              // the cells and the camera stop at the freeze
+  // arrivals, in completion order, eased so the first and last cells are not rushed;
+  // the first cell is already there on the first frame
+  const u = sm(ts, T.fill0, T.fill1);
+  const arrived = 1 + u * (live.length - 1);
   let n = 0;
-  const kPlayer = sm(t, T.playerIn, T.playerDone);
+  const kPlayer = sm(ts, T.playerIn, T.playerDone);
   live.forEach((c, i) => {
     const age = arrived - i;                      // in cells; ~8 cells per second
     if (age <= 0) { c.mesh.visible = false; return; }
     n++;
     c.mesh.visible = true;
-    const k = Math.min(1, age / 10);              // fade over ~0.7 s at ~15 cells a second
+    const k = i === 0 ? 1 : Math.min(1, age / 10);   // fade over ~0.7 s at ~15 cells a second
     c.mat.opacity = k; c.mat.transparent = k < 1; c.mat.depthWrite = k > 0.4;
     c.mat.emissiveIntensity = 0.9 * (1-k)*(1-k);
     tmp.copy(c.cType).lerp(c.cPlayer, kPlayer);
@@ -183,9 +211,9 @@ window.setFrame = function(f) {
   });
   // camera: a slow orbit, from above during the fill, swinging to the side as the types appear
   // from above at first, so the mosaic of somas reads; down to the side view by the time the patch is complete
-  const kSide = sm(t, T.fill0 + 2, T.fill1 + 1);
+  const kSide = sm(ts, T.fill0 + 2.6, T.fill1 + 1);
   const elev = lerp(1.2, 0.07, kSide);
-  const az = -0.6 + 0.03 * (t + OFF);
+  const az = -0.6 + 0.03 * (ts + OFF);
   const dist = lerp(dTop, dSide, kSide);
   cam.position.set(target0.x + dist*Math.cos(elev)*Math.cos(az), target0.y + dist*Math.cos(elev)*Math.sin(az), target0.z + dist*Math.sin(elev));
   cam.up.set(0,0,1); cam.lookAt(target0);
@@ -202,17 +230,44 @@ window.setFrame = function(f) {
     if (board !== 'players') { board = 'players'; buildLegend(playerItems, playerCount); }
     legendEl.style.opacity = sm(t, T.playerIn - 0.6, T.playerIn + 0.4);
   }
-  let cap = `Coloured by <b>type</b>, in the order they were proofread.`;
-  if (t < 9.0) cap = `A sample of 10% of the real cells citizen scientists mapped.<br>` + cap;
-  if (t >= T.fill1 - 4) cap = `Bipolar cells carry the signal from the eye's photoreceptors to the ganglion cells that send it to the brain.`;
-  if (t >= T.playerIn - 0.6) cap = `Coloured by the <b>person who proofread</b> each one.`;
-  $('cap').innerHTML = cap;
+  const c = TEXT.captions.find(c => t >= c.from && t < c.to);
+  $('cap').innerHTML = c ? c.html : '';
 
-  $('hud').style.opacity = sm(t, 0, T.fill0) * (1 - sm(t, T.end0-0.8, T.end0));
-  $('black').style.opacity = (1 - sm(t, 0, 0.8)) + sm(t, T.end1, T.end1+1.0);
-  renderer.render(scene, cam);
-  award(t);
+  finale(t, n);
+  $('black').style.opacity = sm(t, T.end1, T.end1 + 1.0);
+  if (LAYER !== 'overlay') renderer.render(scene, cam);
+  if (LAYER !== 'plate') award(t);
 };
+
+// ---- the finale: the counter flies to the centre and rolls on to 10,000 --------------
+const fnum = $('fnum'), fline = $('fline'), countEl = $('count');
+fline.textContent = F.line.replace('{n}', fmt(live.length));
+let flip = null;          // where the counter sits, as a transform of the big centred number
+const easeIO = x => x<0?0:x>1?1:(x<.5 ? 4*x*x*x : 1 - Math.pow(-2*x+2, 3)/2);
+function finale(t, n) {
+  if (t < T.freeze) {
+    $('hud').style.opacity = 1; countEl.style.opacity = 1;
+    $('finale').style.opacity = 0; $('fveil').style.opacity = 0; flip = null; return;
+  }
+  if (!flip) {
+    fnum.textContent = fmt(n); fnum.style.transform = 'none';
+    const a = countEl.getBoundingClientRect(), b = fnum.getBoundingClientRect();
+    flip = { dx: (a.left + a.width/2) - (b.left + b.width/2), dy: (a.top + a.height/2) - (b.top + b.height/2), s: a.height / b.height };
+  }
+  // the counter hands over to the big number in the same place, then the rest of the HUD goes
+  countEl.style.opacity = 0;
+  $('hud').style.opacity = 1 - sm(t, T.freeze, T.freeze + 0.6);
+  $('finale').style.opacity = 1 - sm(t, T.award - 0.1, T.award + 0.4);
+  $('fveil').style.opacity = 0.62 * sm(t, T.freeze, T.freeze + 1.0);
+  const k = easeIO((t - T.freeze) / 1.1);
+  fnum.style.transform = `translate(${flip.dx*(1-k)}px, ${flip.dy*(1-k)}px) scale(${lerp(flip.s, 1, k)})`;
+  const r = easeIO((t - T.roll0) / (T.roll1 - T.roll0));
+  const v = t >= T.roll1 ? F.roll_to : Math.round(lerp(n, F.roll_to, r));
+  fnum.textContent = fmt(v);
+  fnum.classList.toggle('gold', v >= F.roll_to);
+  fline.style.opacity = sm(t, T.freeze + 0.8, T.freeze + 1.5);
+  fline.style.transform = `translateY(${12 * (1 - sm(t, T.freeze + 0.8, T.freeze + 1.5))}px)`;
+}
 
 // ---- the closing award: scifi-ui's EyeWire II badge unlock ------------------------
 // Captured frame by frame, so under the capture the page runs on a virtual clock:
@@ -246,7 +301,7 @@ function award(t) {
   for (const a of document.getAnimations()) { if (!births.has(a)) births.set(a, vNow); a.pause(); a.currentTime = vNow - births.get(a); }
 }
 function fireAward() {
-  holoaward({ name: '10,000 cells mapped', desc: 'Congratulations on mapping 10,000 cells in Eyewire II!', img: 'scifi/citizen-scientist.png' });
+  holoaward({ name: TEXT.award.name, desc: TEXT.award.desc, img: TEXT.award.img });
 }
 await document.fonts.ready;
 window.setFrame(0);

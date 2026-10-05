@@ -8,6 +8,10 @@ const fs = require('fs');
 const FF = process.env.FFMPEG || 'ffmpeg';
 const URL = process.env.ANIM_URL || 'http://127.0.0.1:8765/anim.html';
 const FPS = 30;
+// ALPHA=1 captures with a transparent background (for ?layer=overlay) into a PNG-in-MOV
+// that keeps the alpha channel, for compose.py to lay over the plate
+const ALPHA = !!process.env.ALPHA;
+const shot = (page, opts = {}) => page.screenshot({ type: 'png', omitBackground: ALPHA, ...opts });
 
 (async () => {
   const browser = await chromium.launch({ headless: true, args: [
@@ -29,20 +33,21 @@ const FPS = 30;
     for (const s of process.argv.slice(3)) {
       const f = Math.round(parseFloat(s) * FPS);
       await page.evaluate(f => window.setFrame(f), f);
-      await page.screenshot({ path: `probe_${s}.png`, type: 'png' });
+      await shot(page, { path: `probe_${s}.png` });
       console.log('probe', s, 'frame', f, 'of', total);
     }
   } else {
     const out = process.argv[3] || 'out.mp4';
     const ff = spawn(FF, ['-y', '-hide_banner', '-loglevel', 'error', '-f', 'image2pipe', '-framerate', String(FPS), '-c:v', 'png', '-i', '-',
-      '-c:v', 'libx264', '-preset', 'slow', '-crf', '17', '-pix_fmt', 'yuv420p', '-movflags', '+faststart', '-r', String(FPS), out], { stdio: ['pipe', 'inherit', 'inherit'] });
+      ...(ALPHA ? ['-c:v', 'png', '-pix_fmt', 'rgba'] : ['-c:v', 'libx264', '-preset', 'slow', '-crf', '17', '-pix_fmt', 'yuv420p', '-movflags', '+faststart']),
+      '-r', String(FPS), out], { stdio: ['pipe', 'inherit', 'inherit'] });
     const t0 = Date.now();
     // FROM=n starts at frame n, for re-rendering the tail of a film and splicing it on
     const from = Math.max(0, parseInt(process.env.FROM || '0', 10));
     const to = Math.min(total, parseInt(process.env.TO || String(total), 10));   // TO=n stops before frame n
     for (let f = from; f < to; f++) {
       await page.evaluate(f => window.setFrame(f), f);
-      const buf = await page.screenshot({ type: 'png' });
+      const buf = await shot(page);
       if (!ff.stdin.write(buf)) await new Promise(r => ff.stdin.once('drain', r));
       if (f % 150 === 0) console.log(`frame ${f}/${total}  ${((Date.now()-t0)/1000).toFixed(0)}s`);
     }
