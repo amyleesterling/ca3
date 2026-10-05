@@ -171,7 +171,7 @@ window.setFrame = function(f) {
   // from above at first, so the mosaic of somas reads; down to the side view by the time the patch is complete
   const elev = lerp(1.15, 0.12, sm(t, T.fill0 + 2, T.fill1 + 1));
   const az = -0.6 + 0.04 * t;
-  const dist = DK * lerp(262, 268, sm(t, T.fill0, T.fill1));
+  const dist = DK * lerp(262, 238, sm(t, T.fill0, T.fill1));
   cam.position.set(target0.x + dist*Math.cos(elev)*Math.cos(az), target0.y + dist*Math.cos(elev)*Math.sin(az), target0.z + dist*Math.sin(elev));
   cam.up.set(0,0,1); cam.lookAt(target0);
   // frame the column left of centre so the board has room
