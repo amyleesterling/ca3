@@ -45,14 +45,13 @@ canvas{position:absolute;inset:0;display:block;width:1920px;height:1080px}
   <div id="tl">
     <div class="eyebrow">Eyewire II · bipolar cells</div>
     <div id="count">0</div>
-    <div id="clabel">cells in this column</div>
-    <div id="sub"></div>
+    <div id="clabel">cells</div>
   </div>
   <div id="board"><h3 id="bh">Proofreaders</h3><div id="rows"></div></div>
   <div id="cap"></div>
 </div>
 <div id="wm">eyewire.ai</div>
-<div class="card" id="title"><h1><b>10,000</b> cells, up close</h1><p>one column of the retina, every branch of every cell</p></div>
+<div class="card" id="title"><h1><b>10,000</b> cells, up close</h1><p>one patch of retina, every branch of every cell</p></div>
 <div class="card" id="end">
   <div class="mark">Eyewire II</div>
   <h1><b>10,000</b> bipolar cells</h1>
@@ -117,7 +116,16 @@ await Promise.all(cells.map(c => new Promise(res => loader.load(`${MESHES}/${c.s
   $('load').textContent = `${++loaded}/${N}`; res();
 }, undefined, () => res()))));
 $('load').textContent = '';
-const live = cells.filter(c => c.mesh);
+// a cell whose branches run far outside the patch reads as a stray; leave those out
+const somaSpread = Math.max(...cells.filter(c => c.mesh).map(c => Math.hypot(c.soma_um[0]-centre.x, c.soma_um[1]-centre.y)));
+const live = cells.filter(c => {
+  if (!c.mesh) return false;
+  const b = c.mesh.geometry.boundingBox;
+  const reach = Math.max(Math.hypot(b.min.x-centre.x, b.min.y-centre.y), Math.hypot(b.max.x-centre.x, b.max.y-centre.y),
+                         Math.hypot(b.min.x-centre.x, b.max.y-centre.y), Math.hypot(b.max.x-centre.x, b.min.y-centre.y));
+  if (reach > somaSpread + 22) { c.mesh.visible = false; scene.remove(c.mesh); console.log('left out', c.segid, c.type, 'reach', reach.toFixed(0)); return false; }
+  return true;
+});
 console.log('loaded', live.length, 'of', N, 'z range', zLo, zHi);
 const zMid = (zLo + zHi) / 2;
 const target0 = new THREE.Vector3(centre.x, centre.y, zMid);
@@ -133,10 +141,9 @@ live.forEach(c => { playerCount[c.proofreader] = (playerCount[c.proofreader]||0)
 const playerItems = PLAYERS.map((p,i) => [p, PLAYER_HEX[i], p]).filter(([p]) => playerCount[p]);
 const typeItems = TYPE_LEGEND.concat([['other', OTHER_HEX]]).map(([t,h]) => [t === 'other' ? 'unassigned' : t, h, t]).filter(([,,k]) => typeCount[k]);
 $('names').innerHTML = PLAYERS.filter(p => playerCount[p]).map(p => `<span>${p}</span>`).join(' ');
-$('sub').textContent = `${fmt(N)} of the 10,081 proofread cells, every one whose cell body lies within 38 µm of a point in the imaging box.`;
 
 // ---- timeline (seconds) ------------------------------------------------------------
-const T = { titleIn: 0.6, titleOut: 3.4, fill0: 4.0, fill1: 22.0, typeIn: 24.0, typeDone: 26.0, playerIn: 33.0, playerDone: 35.0, end0: 42.0, end1: 47.0 };
+const T = { titleIn: 0.6, titleOut: 3.4, fill0: 4.0, fill1: 27.0, playerIn: 33.0, playerDone: 35.0, end0: 41.0, end1: 46.0 };
 window.TOTAL_FRAMES = Math.round((T.end1 + 1.0) * FPS);
 const ease = x => x<0?0:x>1?1:x*x*(3-2*x), sm = (t,a,b) => ease((t-a)/(b-a)), lerp = (a,b,x) => a+(b-a)*x;
 let board = '';
@@ -148,41 +155,42 @@ window.setFrame = function(f) {
   const u = sm(t, T.fill0, T.fill1);
   const arrived = u * live.length;
   let n = 0;
-  const kType = sm(t, T.typeIn, T.typeDone), kPlayer = sm(t, T.playerIn, T.playerDone);
+  const kPlayer = sm(t, T.playerIn, T.playerDone);
   live.forEach((c, i) => {
     const age = arrived - i;                      // in cells; ~8 cells per second
     if (age <= 0) { c.mesh.visible = false; return; }
     n++;
     c.mesh.visible = true;
-    const k = Math.min(1, age / 6);               // fade over ~0.75 s
+    const k = Math.min(1, age / 10);              // fade over ~0.7 s at ~15 cells a second
     c.mat.opacity = k; c.mat.transparent = k < 1; c.mat.depthWrite = k > 0.4;
     c.mat.emissiveIntensity = 0.9 * (1-k)*(1-k);
-    tmp.copy(c.cRandom).lerp(c.cType, kType).lerp(c.cPlayer, kPlayer);
+    tmp.copy(c.cType).lerp(c.cPlayer, kPlayer);
     c.mat.color.copy(tmp);
   });
   // camera: a slow orbit, from above during the fill, swinging to the side as the types appear
-  const elev = lerp(1.22, 0.66, sm(t, T.fill0, T.fill1)) - 0.54*sm(t, T.typeIn - 0.5, T.typeDone + 2.5);
+  // from above at first, so the mosaic of somas reads; down to the side view by the time the patch is complete
+  const elev = lerp(1.15, 0.12, sm(t, T.fill0 + 2, T.fill1 + 1));
   const az = -0.6 + 0.04 * t;
-  const dist = DK * (lerp(262, 236, sm(t, T.fill0, T.fill1)) + 30*sm(t, T.typeIn, T.typeDone + 2));
+  const dist = DK * lerp(262, 268, sm(t, T.fill0, T.fill1));
   cam.position.set(target0.x + dist*Math.cos(elev)*Math.cos(az), target0.y + dist*Math.cos(elev)*Math.sin(az), target0.z + dist*Math.sin(elev));
   cam.up.set(0,0,1); cam.lookAt(target0);
   // frame the column left of centre so the board has room
-  cam.setViewOffset(1920, 1080, 160, -64, 1920, 1080);
+  cam.setViewOffset(1920, 1080, 160, -28, 1920, 1080);
 
   // HUD
   $('count').textContent = fmt(n);
-  if (t < T.typeIn) { if (board !== '') { board = ''; } $('board').style.opacity = 0; }
-  else if (t < T.playerIn - 0.6) { if (board !== 'types') { board = 'types'; buildRows(typeItems); $('bh').textContent = 'Bipolar cell types'; }
-    const kb = sm(t, T.typeIn, T.typeDone + 0.4), mx = Math.max(...Object.values(typeCount));
-    $('board').style.opacity = sm(t, T.typeIn, T.typeIn + 0.8);
-    [...rowsEl.children].forEach((r,i) => { const v = Math.round(typeCount[typeItems[i][2]]*kb); r.querySelector('i').style.width = (100*v/mx)+'%'; r.querySelector('.n').textContent = v; }); }
+  if (t < T.playerIn - 0.6) { if (board !== 'types') { board = 'types'; buildRows(typeItems); $('bh').textContent = 'Bipolar cell types'; }
+    const seen = {}; for (let i=0;i<n;i++) seen[live[i].typeKey] = (seen[live[i].typeKey]||0)+1;
+    const mx = Math.max(...Object.values(typeCount));
+    $('board').style.opacity = 1;
+    [...rowsEl.children].forEach((r,i) => { const v = seen[typeItems[i][2]]||0; r.querySelector('i').style.width = (100*v/mx)+'%'; r.querySelector('.n').textContent = v; }); }
   else { if (board !== 'players') { board = 'players'; buildRows(playerItems); $('bh').textContent = 'Proofreaders'; }
     const kb = sm(t, T.playerIn, T.playerDone + 0.4), mx = Math.max(...Object.values(playerCount));
     $('board').style.opacity = sm(t, T.playerIn - 0.6, T.playerIn + 0.4);
     [...rowsEl.children].forEach((r,i) => { const v = Math.round(playerCount[playerItems[i][2]]*kb); r.querySelector('i').style.width = (100*v/mx)+'%'; r.querySelector('.n').textContent = v; }); }
-  let cap = `Real cells from the segmentation, arriving in the order they were finished.`;
-  if (t >= T.typeIn) cap = `Coloured by <b>type</b>. Seen from the side, each type's axon ends at its own depth in the inner plexiform layer.`;
-  if (t >= T.playerIn - 0.6) cap = `Recalled by the <b>person who proofread</b> each one.`;
+  let cap = `Real cells, in the order they were finished. Coloured by <b>type</b>.`;
+  if (t >= T.fill1 - 3) cap = `Each type's axon ends at its own depth.`;
+  if (t >= T.playerIn - 0.6) cap = `By the <b>person who proofread</b> each one.`;
   $('cap').innerHTML = cap;
 
   $('hud').style.opacity = sm(t, T.titleOut, T.fill0) * (1 - sm(t, T.end0-0.8, T.end0));
