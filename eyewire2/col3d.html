@@ -48,6 +48,7 @@ canvas{position:absolute;inset:0;display:block;width:1920px;height:1080px}
 #wm{z-index:20001}
 /* the phone cut */
 .portrait body{width:1080px;height:1920px}
+.square body,.square canvas{width:1080px;height:1080px}
 .portrait canvas{width:1080px;height:1920px}
 .portrait #tl{left:60px;top:90px}
 .portrait #count{font-size:112px}
@@ -100,8 +101,11 @@ const MESHES = QS.get('meshes') || 'meshes';
 const LAYER = QS.get('layer') || '';
 // ?aspect=portrait: the phone cut, 1080 x 1920, framed for a tall screen
 const PORTRAIT = QS.get('aspect') === 'portrait';
-const W = PORTRAIT ? 1080 : 1920, H = PORTRAIT ? 1920 : 1080;
+// ?aspect=square: 1080 x 1080, for stills such as a notification image
+const SQUARE = QS.get('aspect') === 'square';
+const W = PORTRAIT || SQUARE ? 1080 : 1920, H = PORTRAIT ? 1920 : 1080;
 if (PORTRAIT) document.documentElement.classList.add('portrait');
+if (SQUARE) document.documentElement.classList.add('square');
 const TEXT = await (await fetch('captions.json', { cache: 'no-store' })).json();
 if (LAYER === 'plate') document.documentElement.classList.add('layer-plate');
 if (LAYER === 'overlay') document.documentElement.classList.add('layer-overlay');
@@ -178,13 +182,14 @@ const target0 = new THREE.Vector3(centre.x, centre.y, zMid);
 const spread = somaSpread + 10;
 const D = 2 * spread, tanV = Math.tan(cam.fov * Math.PI / 360), tanH = tanV * W / H;
 // on a phone the patch fills the width from above
-const dTop = PORTRAIT ? D / (0.9 * 2 * tanH) : D / (0.84 * 2 * tanV);
+const dTop = PORTRAIT || SQUARE ? D / (0.9 * 2 * tanH) : D / (0.84 * 2 * tanV);
 // from the side: as wide as the frame allows, but the nearest cells, which look biggest,
 // must keep the retina's full depth inside the band between the counter and the legend
 const zExt = zHi - zLo, BAND = 720;
 // on a phone the side view comes in close: the layers fill the height and the wall runs off both edges
 const dSide = PORTRAIT ? spread + H * zExt / (2 * 1000 * tanV)
-                       : Math.max(D / (1.0 * 2 * tanH), spread + 1080 * zExt / (2 * BAND * tanV));
+            : SQUARE ? spread + H * zExt / (2 * 600 * tanV)
+                     : Math.max(D / (1.0 * 2 * tanH), spread + 1080 * zExt / (2 * BAND * tanV));
 console.log('framing', 'spread', spread.toFixed(1), 'D', D.toFixed(1), 'dTop', dTop.toFixed(0), 'dSide', dSide.toFixed(0), 'centre', centre.x.toFixed(0), centre.y.toFixed(0));
 
 // ---- HUD --------------------------------------------------------------------------
