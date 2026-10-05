@@ -1,0 +1,18 @@
+{
+  "_about": "Every word on screen in the patch film. Edit here, then run compose.py: the 3D plate is not re-rendered. Times are seconds into the film. html allows <b> and <br>.",
+  "captions": [
+    { "from": 0.0,  "to": 9.0,  "html": "A sample of 10% of the real cells citizen scientists mapped.<br>Coloured by <b>type</b>, in the order they were proofread." },
+    { "from": 9.0,  "to": 19.6, "html": "Coloured by <b>type</b>, in the order they were proofread." },
+    { "from": 19.6, "to": 29.0, "html": "Bipolar cells carry the signal from the eye's photoreceptors to the ganglion cells that send it to the brain." },
+    { "from": 29.0, "to": 99.0, "html": "Coloured by the <b>citizen scientist</b> who proofread each one." }
+  ],
+  "eyebrow": "Eyewire II · bipolar cells",
+  "counter_label": "cells",
+  "watermark": "eyewire.ai",
+  "award": {
+    "at": 37.2,
+    "name": "10,000 cells mapped",
+    "desc": "Congratulations on mapping 10,000 cells in Eyewire II!",
+    "img": "scifi/citizen-scientist.png"
+  }
+}

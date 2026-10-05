@@ -6,6 +6,9 @@
 <style>
 @font-face{font-family:Inter;font-weight:100 900;src:url(fonts/inter-latin.woff2) format("woff2")}
 html,body{margin:0;background:#03050f;overflow:hidden}
+.layer-plate #vig,.layer-plate #scrim,.layer-plate #hud,.layer-plate #wm,.layer-plate #black{display:none}
+.layer-overlay,.layer-overlay body{background:transparent}
+.layer-overlay canvas#c{visibility:hidden}
 body{width:1920px;height:1080px;position:relative;font-family:Inter,system-ui,sans-serif;color:#fff;-webkit-font-smoothing:antialiased}
 canvas{position:absolute;inset:0;display:block;width:1920px;height:1080px}
 #vig{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at 45% 50%, rgba(3,5,15,0) 50%, rgba(3,5,15,.6) 100%)}
@@ -69,7 +72,17 @@ import * as THREE from 'three';
 import { GLTFLoader } from '../web/vendor/loaders/GLTFLoader.js';
 
 const FPS = 30, $ = id => document.getElementById(id), fmt = n => n.toLocaleString('en-US');
-const MESHES = new URLSearchParams(location.search).get('meshes') || 'meshes';
+const QS = new URLSearchParams(location.search);
+const MESHES = QS.get('meshes') || 'meshes';
+// ?layer=plate renders the cells alone; ?layer=overlay renders every word, fade and the award on a
+// transparent page with no 3D drawn; compose.py lays one on the other. No layer: both, as before.
+const LAYER = QS.get('layer') || '';
+const TEXT = await (await fetch('captions.json', { cache: 'no-store' })).json();
+if (LAYER === 'plate') document.documentElement.classList.add('layer-plate');
+if (LAYER === 'overlay') document.documentElement.classList.add('layer-overlay');
+document.querySelector('.eyebrow').textContent = TEXT.eyebrow;
+document.getElementById('clabel').textContent = TEXT.counter_label;
+document.getElementById('wm').textContent = TEXT.watermark;
 const IDX = await (await fetch(`${MESHES}/index.json`)).json();
 const cells = IDX.cells.slice().sort((a,b) => a.date.localeCompare(b.date));
 const N = cells.length;
@@ -157,7 +170,7 @@ const typeItems = TYPE_LEGEND.concat([['other', OTHER_HEX]]).map(([t,h]) => [t =
 // ---- timeline (seconds) ------------------------------------------------------------
 // everything 3.4 s earlier than the cut with an opening title, so the films splice frame for frame
 const OFF = 3.4;
-const T = { fill0: 4.0-OFF, fill1: 27.0-OFF, playerIn: 33.0-OFF, playerDone: 35.0-OFF, end0: 41.0-OFF, award: 40.6-OFF, end1: 45.5 };
+const T = { fill0: 4.0-OFF, fill1: 27.0-OFF, playerIn: 33.0-OFF, playerDone: 35.0-OFF, end0: 41.0-OFF, award: TEXT.award.at, end1: 45.5 };
 window.TOTAL_FRAMES = Math.round((T.end1 + 1.0) * FPS);   // 46.5 s
 const ease = x => x<0?0:x>1?1:x*x*(3-2*x), sm = (t,a,b) => ease((t-a)/(b-a)), lerp = (a,b,x) => a+(b-a)*x;
 let board = '';
@@ -202,16 +215,13 @@ window.setFrame = function(f) {
     if (board !== 'players') { board = 'players'; buildLegend(playerItems, playerCount); }
     legendEl.style.opacity = sm(t, T.playerIn - 0.6, T.playerIn + 0.4);
   }
-  let cap = `Coloured by <b>type</b>, in the order they were proofread.`;
-  if (t < 9.0) cap = `A sample of 10% of the real cells citizen scientists mapped.<br>` + cap;
-  if (t >= T.fill1 - 4) cap = `Bipolar cells carry the signal from the eye's photoreceptors to the ganglion cells that send it to the brain.`;
-  if (t >= T.playerIn - 0.6) cap = `Coloured by the <b>person who proofread</b> each one.`;
-  $('cap').innerHTML = cap;
+  const c = TEXT.captions.find(c => t >= c.from && t < c.to);
+  $('cap').innerHTML = c ? c.html : '';
 
   $('hud').style.opacity = sm(t, 0, T.fill0) * (1 - sm(t, T.end0-0.8, T.end0));
   $('black').style.opacity = (1 - sm(t, 0, 0.8)) + sm(t, T.end1, T.end1+1.0);
-  renderer.render(scene, cam);
-  award(t);
+  if (LAYER !== 'overlay') renderer.render(scene, cam);
+  if (LAYER !== 'plate') award(t);
 };
 
 // ---- the closing award: scifi-ui's EyeWire II badge unlock ------------------------
@@ -246,7 +256,7 @@ function award(t) {
   for (const a of document.getAnimations()) { if (!births.has(a)) births.set(a, vNow); a.pause(); a.currentTime = vNow - births.get(a); }
 }
 function fireAward() {
-  holoaward({ name: '10,000 cells mapped', desc: 'Congratulations on mapping 10,000 cells in Eyewire II!', img: 'scifi/citizen-scientist.png' });
+  holoaward({ name: TEXT.award.name, desc: TEXT.award.desc, img: TEXT.award.img });
 }
 await document.fonts.ready;
 window.setFrame(0);

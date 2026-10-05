@@ -27,6 +27,26 @@ type. Each dot is one soma, lit on the day its proofreading was finished.
 - `manifest.csv` is the same set in completion order with each cell's final
   segment id, for a proper mesh render of the cells themselves
 
+## Captions are post-production
+
+The patch film is two layers. The plate is the cells alone
+(`col3d.html?layer=plate`), the slow part, rendered once. The overlay is every
+word, the counter, the legend, the fades and the closing award on a transparent
+background (`col3d.html?layer=overlay`, captured with `ALPHA=1`), which takes
+minutes because nothing 3D is drawn. `compose.py` lays one on the other.
+
+Every word on screen lives in `captions.json`, with the time it shows. To change
+one: edit that file, re-capture the overlay, run `compose.py`. The plate is not
+touched.
+
+    export FFMPEG=...   # an ffmpeg with libx264
+    eyewire2/render.sh 'col3d.html?meshes=meshes1000&layer=plate' plate.mp4
+    ALPHA=1 CHUNK=1395 eyewire2/render.sh 'col3d.html?meshes=meshes1000&layer=overlay' overlay.mov
+    python3 eyewire2/compose.py plate.mp4 overlay.mov film.mp4
+
+`render.sh` renders in chunks and keeps the finished ones, so a render cut off
+by a restart picks up where it stopped when run again.
+
 ## Rebuilding
 
 The data comes from the "Focused BCs" tab, exported as CSV; a row counts when
