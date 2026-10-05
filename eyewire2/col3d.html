@@ -203,6 +203,7 @@ window.setFrame = function(f) {
     legendEl.style.opacity = sm(t, T.playerIn - 0.6, T.playerIn + 0.4);
   }
   let cap = `Coloured by <b>type</b>, in the order they were proofread.`;
+  if (t < 9.0) cap = `A sample of 10% of the real cells citizen scientists mapped.<br>` + cap;
   if (t >= T.fill1 - 4) cap = `Bipolar cells carry the signal from the eye's photoreceptors to the ganglion cells that send it to the brain.`;
   if (t >= T.playerIn - 0.6) cap = `Coloured by the <b>person who proofread</b> each one.`;
   $('cap').innerHTML = cap;

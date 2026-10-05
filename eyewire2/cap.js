@@ -1,6 +1,6 @@
 // Frame capture for anim.html.
 //   node cap.js probe 2 10 20 29.7 33 40 48     -> probe_<sec>.png
-//   node cap.js full out.mp4                    -> h264 via ffmpeg on stdin (FROM=n: start at frame n)
+//   node cap.js full out.mp4                    -> h264 via ffmpeg on stdin (FROM=n, TO=n: a frame range)
 //   node cap.js still random|players out.png    -> one 3840x2160 still
 const { chromium } = require('/opt/node22/lib/node_modules/playwright');
 const { spawn } = require('child_process');
@@ -39,7 +39,8 @@ const FPS = 30;
     const t0 = Date.now();
     // FROM=n starts at frame n, for re-rendering the tail of a film and splicing it on
     const from = Math.max(0, parseInt(process.env.FROM || '0', 10));
-    for (let f = from; f < total; f++) {
+    const to = Math.min(total, parseInt(process.env.TO || String(total), 10));   // TO=n stops before frame n
+    for (let f = from; f < to; f++) {
       await page.evaluate(f => window.setFrame(f), f);
       const buf = await page.screenshot({ type: 'png' });
       if (!ff.stdin.write(buf)) await new Promise(r => ff.stdin.once('drain', r));
