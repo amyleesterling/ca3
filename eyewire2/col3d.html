@@ -1,6 +1,8 @@
 <!doctype html>
 <meta charset="utf-8">
 <title>A patch of bipolar cells</title>
+<link rel="stylesheet" href="scifi/badge-award.css">
+<link rel="stylesheet" href="scifi/confetti-burst.css">
 <style>
 @font-face{font-family:Inter;font-weight:100 900;src:url(fonts/inter-latin.woff2) format("woff2")}
 html,body{margin:0;background:#03050f;overflow:hidden}
@@ -32,7 +34,15 @@ canvas{position:absolute;inset:0;display:block;width:1920px;height:1080px}
 #end .names span{white-space:nowrap}
 #end .names span+span::before{content:"·";color:rgba(255,255,255,.3);margin:0 .6em}
 #end .url{margin-top:48px;font-size:30px;font-weight:500}
-#black{position:absolute;inset:0;background:#03050f;pointer-events:none}
+#black{position:absolute;inset:0;background:#03050f;pointer-events:none;z-index:20000}
+#wm{z-index:20001}
+/* the award, for a film rather than a click: the cells stay visible through a
+   lighter backdrop, the card is sized for 1080p, and there is nothing to click */
+.nge-hero-overlay{background:radial-gradient(ellipse at center, rgba(6,12,28,.45) 0%, rgba(0,0,0,.78) 100%);cursor:default}
+.nge-hero-card{zoom:1.2}
+.nge-hero-hint{display:none}
+.nge-hero-subtitle{font-size:19px;max-width:none;white-space:nowrap;color:rgba(200,215,235,.85)}
+.holoburst-canvas{z-index:10001}   /* the confetti in front of the card, not behind its blur */
 #load{position:absolute;left:84px;bottom:140px;font-size:18px;color:rgba(255,255,255,.4)}
 </style>
 <canvas id="c" width="1920" height="1080"></canvas>
@@ -48,16 +58,11 @@ canvas{position:absolute;inset:0;display:block;width:1920px;height:1080px}
   <div id="legend"></div>
 </div>
 <div id="wm">eyewire.ai</div>
-<div class="card" id="title"><h1><b>10,000</b> cells, up close</h1><p>one patch of retina, every branch of every cell</p></div>
-<div class="card" id="end">
-  <div class="mark">Eyewire II</div>
-  <h1><b>10,000</b> bipolar cells</h1>
-  <div class="names" id="names"></div>
-  <div class="url">eyewire.ai</div>
-</div>
 <div id="black"></div>
 <div id="load"></div>
 
+<script src="scifi/confetti-burst.js"></script>
+<script src="scifi/badge-award.js"></script>
 <script type="importmap">{"imports":{"three":"../web/vendor/three.module.min.js","three/addons/":"../web/vendor/"}}</script>
 <script type="module">
 import * as THREE from 'three';
@@ -148,11 +153,12 @@ const playerCount = {}, typeCount = {};
 live.forEach(c => { playerCount[c.proofreader] = (playerCount[c.proofreader]||0)+1; typeCount[c.typeKey] = (typeCount[c.typeKey]||0)+1; });
 const playerItems = PLAYERS.map((p,i) => [p, PLAYER_HEX[i], p]).filter(([p]) => playerCount[p]);
 const typeItems = TYPE_LEGEND.concat([['other', OTHER_HEX]]).map(([t,h]) => [t === 'other' ? 'unassigned' : t, h, t]).filter(([,,k]) => typeCount[k]);
-$('names').innerHTML = PLAYERS.filter(p => playerCount[p]).map(p => `<span>${p}</span>`).join(' ');
 
 // ---- timeline (seconds) ------------------------------------------------------------
-const T = { titleIn: 0.6, titleOut: 3.4, fill0: 4.0, fill1: 27.0, playerIn: 33.0, playerDone: 35.0, end0: 41.0, end1: 46.0 };
-window.TOTAL_FRAMES = Math.round((T.end1 + 1.0) * FPS);
+// everything 3.4 s earlier than the cut with an opening title, so the films splice frame for frame
+const OFF = 3.4;
+const T = { fill0: 4.0-OFF, fill1: 27.0-OFF, playerIn: 33.0-OFF, playerDone: 35.0-OFF, end0: 41.0-OFF, award: 40.6-OFF, end1: 45.5 };
+window.TOTAL_FRAMES = Math.round((T.end1 + 1.0) * FPS);   // 46.5 s
 const ease = x => x<0?0:x>1?1:x*x*(3-2*x), sm = (t,a,b) => ease((t-a)/(b-a)), lerp = (a,b,x) => a+(b-a)*x;
 let board = '';
 const tmp = new THREE.Color();
@@ -179,7 +185,7 @@ window.setFrame = function(f) {
   // from above at first, so the mosaic of somas reads; down to the side view by the time the patch is complete
   const kSide = sm(t, T.fill0 + 2, T.fill1 + 1);
   const elev = lerp(1.2, 0.07, kSide);
-  const az = -0.6 + 0.03 * t;
+  const az = -0.6 + 0.03 * (t + OFF);
   const dist = lerp(dTop, dSide, kSide);
   cam.position.set(target0.x + dist*Math.cos(elev)*Math.cos(az), target0.y + dist*Math.cos(elev)*Math.sin(az), target0.z + dist*Math.sin(elev));
   cam.up.set(0,0,1); cam.lookAt(target0);
@@ -197,17 +203,51 @@ window.setFrame = function(f) {
     legendEl.style.opacity = sm(t, T.playerIn - 0.6, T.playerIn + 0.4);
   }
   let cap = `Coloured by <b>type</b>, in the order they were proofread.`;
+  if (t < 9.0) cap = `A sample of 10% of the real cells citizen scientists mapped.<br>` + cap;
   if (t >= T.fill1 - 4) cap = `Bipolar cells carry the signal from the eye's photoreceptors to the ganglion cells that send it to the brain.`;
   if (t >= T.playerIn - 0.6) cap = `Coloured by the <b>person who proofread</b> each one.`;
   $('cap').innerHTML = cap;
 
-  $('hud').style.opacity = sm(t, T.titleOut, T.fill0) * (1 - sm(t, T.end0-0.8, T.end0));
-  $('title').style.opacity = sm(t, T.titleIn, T.titleIn+1.0) * (1 - sm(t, T.titleOut-0.8, T.titleOut));
-  $('end').style.opacity = sm(t, T.end0, T.end0+1.0);
+  $('hud').style.opacity = sm(t, 0, T.fill0) * (1 - sm(t, T.end0-0.8, T.end0));
   $('black').style.opacity = (1 - sm(t, 0, 0.8)) + sm(t, T.end1, T.end1+1.0);
-  $('c').style.opacity = 1 - 0.7*sm(t, T.end0, T.end0+1.0);
   renderer.render(scene, cam);
+  award(t);
 };
+
+// ---- the closing award: scifi-ui's EyeWire II badge unlock ------------------------
+// Captured frame by frame, so under the capture the page runs on a virtual clock:
+// timers, animation frames and every CSS animation follow the film's time, not the
+// wall clock, and the confetti steps at the 60 Hz it was written for.
+const VCLOCK = !!navigator.webdriver;
+let vNow = 0, vId = 1, vTimers = [], vRafs = [], awardOn = false;
+const births = new WeakMap();
+if (VCLOCK) {
+  performance.now = () => vNow;
+  window.setTimeout = (fn, ms = 0, ...a) => { const id = vId++; vTimers.push({ id, at: vNow + (+ms || 0), fn, a }); return id; };
+  window.clearTimeout = id => { vTimers = vTimers.filter(x => x.id !== id); };
+  window.requestAnimationFrame = fn => { const id = vId++; vRafs.push({ id, fn }); return id; };
+  window.cancelAnimationFrame = id => { vRafs = vRafs.filter(r => r.id !== id); };
+}
+function registerAnimations() { for (const a of document.getAnimations()) if (!births.has(a)) births.set(a, vNow); }
+function vAdvance(toMs) {
+  while (vNow < toMs - 1e-6) {
+    vNow = Math.min(toMs, vNow + 1000 / 60);
+    const due = vTimers.filter(x => x.at <= vNow); vTimers = vTimers.filter(x => x.at > vNow);
+    due.forEach(x => x.fn(...x.a));
+    const rs = vRafs; vRafs = []; rs.forEach(r => r.fn(vNow));
+    if (awardOn) registerAnimations();
+  }
+}
+function award(t) {
+  if (!VCLOCK) { if (t >= T.award && !awardOn) { awardOn = true; fireAward(); } if (t < T.award && awardOn) { awardOn = false; window.holoaward && holoaward.close(); } return; }
+  if (t < T.award) return;
+  if (!awardOn) { vAdvance(T.award * 1000); awardOn = true; fireAward(); registerAnimations(); }
+  vAdvance(t * 1000);
+  for (const a of document.getAnimations()) { if (!births.has(a)) births.set(a, vNow); a.pause(); a.currentTime = vNow - births.get(a); }
+}
+function fireAward() {
+  holoaward({ name: '10,000 cells mapped', desc: 'Congratulations on mapping 10,000 cells in Eyewire II!', img: 'scifi/citizen-scientist.png' });
+}
 await document.fonts.ready;
 window.setFrame(0);
 window.READY = true;
