@@ -8,7 +8,11 @@ set -e
 PAGE="$1"; OUT="$2"; CHUNK=${CHUNK:-240}
 HERE="$(cd "$(dirname "$0")" && pwd)"
 EXT="${OUT##*.}"; DIR="${OUT%.*}.chunks"; mkdir -p "$DIR"
-TOTAL=1395
+# frames: the plate stops at the freeze, everything else runs to the end (see col3d.html)
+TOTAL=${TOTAL:-$(python3 -c "
+import json,sys; d=json.load(open('$HERE/captions.json'))
+print(round(d['finale']['at']*30)+1 if 'layer=plate' in sys.argv[1] else round((d['award']['at']+8.0)*30))" "$PAGE")}
+echo "rendering $TOTAL frames of $PAGE"
 n=0
 for ((from=0; from<TOTAL; from+=CHUNK)); do
   to=$((from+CHUNK)); [ $to -gt $TOTAL ] && to=$TOTAL
