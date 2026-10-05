@@ -8,6 +8,11 @@ type. Each dot is one soma, lit on the day its proofreading was finished.
 - `index.html` plays the animation live in a browser (it loops), and is also
   what the film is captured from: https://amyleesterling.github.io/ca3/eyewire2/
 - `10k_cells.mp4` is the film, 1920x1080, 30 fps, 53 s, watermarked eyewire.ai
+- `10k_column.mp4` is the 3D film: 170 real cell meshes from one column of the
+  imaging box, arriving in completion order, turned to the side view as they
+  are coloured by type, then recalled by proofreader. `col3d.html` is its page;
+  it needs the GLBs from `fetch_meshes.py` in `meshes/`, which stay out of git
+  (117 MB for the column, 40,000 triangles per cell)
 - `cells.json` is the data behind it, one row per cell: voxel x, y, z, days
   since the first completion, proofreader index, type index
 - `manifest.csv` is the same set in completion order with each cell's final
