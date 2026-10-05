@@ -2,7 +2,8 @@
 //   node cap.js probe 2 10 20 29.7 33 40 48     -> probe_<sec>.png
 //   node cap.js full out.mp4                    -> h264 via ffmpeg on stdin (FROM=n, TO=n: a frame range)
 //   node cap.js still random|players out.png    -> one 3840x2160 still
-const { chromium } = require('/opt/node22/lib/node_modules/playwright');
+// playwright from the project if installed (npm i playwright), else the copy in the cloud container
+let chromium; try { ({ chromium } = require('playwright')); } catch (e) { ({ chromium } = require('/opt/node22/lib/node_modules/playwright')); }
 const { spawn } = require('child_process');
 const fs = require('fs');
 const FF = process.env.FFMPEG || 'ffmpeg';
@@ -14,17 +15,27 @@ const ALPHA = !!process.env.ALPHA;
 const shot = (page, opts = {}) => page.screenshot({ type: 'png', omitBackground: ALPHA, ...opts });
 
 (async () => {
+  // GL=gpu draws on the machine's graphics card (D3D11 on Windows, the native GL elsewhere);
+  // without it Chromium draws in software, which is the only choice on a machine with no GPU
+  const GPU = process.env.GL === 'gpu';
+  const glArgs = GPU
+    ? ['--use-gl=angle', `--use-angle=${process.platform === 'win32' ? 'd3d11' : 'gl'}`, '--enable-gpu', '--ignore-gpu-blocklist']
+    : ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'];
   const browser = await chromium.launch({ headless: true, args: [
-    '--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist',
-    '--disable-gpu-vsync', '--enable-webgl', '--font-render-hinting=none', '--hide-scrollbars'] });
+    ...glArgs, '--disable-gpu-vsync', '--enable-webgl', '--font-render-hinting=none', '--hide-scrollbars'] });
   const mode = process.argv[2] || 'probe';
-  const page = await browser.newPage({ viewport: { width: 1920, height: 1080 }, deviceScaleFactor: mode === 'still' ? 2 : 1 });
+  // SIZE=1080x1920 for the phone cut (with ?aspect=portrait on the page)
+  const [VW, VH] = (process.env.SIZE || '1920x1080').split('x').map(Number);
+  const page = await browser.newPage({ viewport: { width: VW, height: VH }, deviceScaleFactor: mode === 'still' ? 2 : 1 });
   page.setDefaultTimeout(15 * 60 * 1000);   // a thousand meshes take a while to load and parse
   page.on('console', m => console.error('[page]', m.text()));
   page.on('pageerror', e => console.error('[pageerror]', e.message));
   await page.goto(mode === 'still' ? `${URL}?still=${process.argv[3]}` : URL, { waitUntil: 'networkidle' });
   await page.waitForFunction(() => window.READY === true, null, { timeout: 60000 });
   const total = await page.evaluate(() => window.TOTAL_FRAMES);
+  // say which renderer drew the frames, so a GPU run can be told from a software one
+  console.error('[gl]', await page.evaluate(() => { const g = document.createElement('canvas').getContext('webgl');
+    const e = g && g.getExtension('WEBGL_debug_renderer_info'); return e ? g.getParameter(e.UNMASKED_RENDERER_WEBGL) : 'unknown'; }));
   if (mode === 'still') {
     await page.evaluate(() => window.setStill());
     await page.screenshot({ path: process.argv[4] || `still_${process.argv[3]}.png`, type: 'png' });
