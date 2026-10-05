@@ -18,10 +18,9 @@ type. Each dot is one soma, lit on the day its proofreading was finished.
   triangles each. It opens straight on the cells arriving, says up front that
   they are a 10% sample, colours them by type, runs the side view nearly edge
   to edge, recalls them by proofreader, and closes on EyeWire II's own
-  achievement unlock from scifi-ui (see `scifi/`). This is the web encode; the
-  master stayed out of git. It was spliced: the opening 9 s and the closing
-  10 s were re-rendered with `cap.js` and `FROM=`/`TO=`, and the middle is the
-  first render, checked frame for frame at both joins
+  achievement unlock from scifi-ui (see `scifi/`). At the freeze the count
+  flies to the centre over a still of the cells and rolls on to 10,000 before
+  the award. Built in layers (see below); this is the web encode
 - `cells.json` is the data behind it, one row per cell: voxel x, y, z, days
   since the first completion, proofreader index, type index
 - `manifest.csv` is the same set in completion order with each cell's final
