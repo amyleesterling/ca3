@@ -47,6 +47,36 @@ touched.
 `render.sh` renders in chunks and keeps the finished ones, so a render cut off
 by a restart picks up where it stopped when run again.
 
+## Rendering on a machine with a graphics card
+
+In the cloud container there is no GPU, so Chromium draws in software: about
+8 seconds a frame once the whole patch is on screen. On a machine with a card,
+`GL=gpu` puts the drawing on it, and the capture prints which renderer it got
+(look for `[gl]` in the log; it should name the card, not SwiftShader).
+
+    git pull
+    pip install caveclient cloud-volume trimesh fast-simplification imageio-ffmpeg
+    npm i playwright && npx playwright install chromium
+    # the meshes: about an hour, resumable, needs the CAVE token in ~/.cloudvolume/secrets
+    python eyewire2/fetch_meshes.py --datastack stroeh_mouse_retina --center 42000 25000 2000 --radius-um 80 --limit 1000 --faces 10000 --out eyewire2/meshes1000
+    npx http-server . -p 8766 -s        # leave running, in its own terminal
+
+Then, in Git Bash, with `FFMPEG` pointing at an ffmpeg with libx264 (or at the
+one `python -c "import imageio_ffmpeg as f; print(f.get_ffmpeg_exe())"` prints):
+
+    # the wide film
+    GL=gpu eyewire2/render.sh 'col3d.html?meshes=meshes1000&layer=plate' renders/plate.mp4
+    GL=gpu ALPHA=1 CHUNK=2000 eyewire2/render.sh 'col3d.html?meshes=meshes1000&layer=overlay' renders/overlay.mov
+    python eyewire2/compose.py renders/plate.mp4 renders/overlay.mov renders/patch1000.mp4
+    # the phone cut, 1080 x 1920
+    GL=gpu SIZE=1080x1920 eyewire2/render.sh 'col3d.html?meshes=meshes1000&layer=plate&aspect=portrait' renders/plate_phone.mp4
+    GL=gpu SIZE=1080x1920 ALPHA=1 CHUNK=2000 eyewire2/render.sh 'col3d.html?meshes=meshes1000&layer=overlay&aspect=portrait' renders/overlay_phone.mov
+    python eyewire2/compose.py renders/plate_phone.mp4 renders/overlay_phone.mov renders/patch1000_phone.mp4
+
+On Aurelius, the render protocol in amyleesterling/render-queue applies: one
+GPU, shared, so check `queue.ps1 status` first and do not run this alongside a
+queued Blender job.
+
 ## Rebuilding
 
 The data comes from the "Focused BCs" tab, exported as CSV; a row counts when
