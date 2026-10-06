@@ -45,7 +45,7 @@ for c, tm in keep:
     v = np.round((tm.vertices - lo) / (hi - lo) * 65535).astype("<u2")
     f = tm.faces.astype("<u2"); assert len(tm.vertices) < 65536
     pos.append(v.ravel()); ind.append(f.ravel())
-    meta.append({"segid": c["segid"], "type": c["type"] or "", "proofreader": c["proofreader"],
+    meta.append({"segid": c["segid"], "type": c["type"] or "", "proofreader": c["proofreader"], "date": c.get("date", ""),
                  "v": [vo, len(tm.vertices)], "i": [io, len(tm.faces) * 3]})
     vo += len(tm.vertices); io += len(tm.faces) * 3
 os.makedirs(a.outdir, exist_ok=True)
