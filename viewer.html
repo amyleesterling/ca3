@@ -80,9 +80,17 @@
   .note b { color:var(--ink); font-weight:500; }
   footer { margin-top:44px; padding-top:20px; border-top:1px solid var(--line);
            color:var(--faint); font-size:14px; }
+  /* ?embed=1: just the stage and its controls, for showing inside another
+     page (the EyeWire II CA3 tour). */
+  .embed .wrap { max-width:none; padding:0; }
+  .embed h1, .embed .lede, .embed .note, .embed footer { display:none; }
+  .embed #stage { min-height:0; border:0; border-radius:0; aspect-ratio:auto; height:calc(100vh - 46px); }
+  .embed .ctl { margin:0; padding:7px 10px; gap:10px; }
+  .embed .ctl button { padding:4px 12px; font-size:12px; }
 </style>
 </head>
 <body>
+<script>if (new URLSearchParams(location.search).has("embed")) document.body.classList.add("embed");</script>
 <div class="wrap">
 
   <h1>An action potential, interactive</h1>
